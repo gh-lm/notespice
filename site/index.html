@@ -79,14 +79,14 @@
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
-  src: url("fonts/TrindleSans-Variable.woff2") format("woff2");
+  src: url("fonts/TrindleSans-Variable.latin.woff2") format("woff2");
 }
 @font-face {
   font-family: "Trindle Sans";
   font-style: italic;
   font-weight: 100 900;
   font-display: swap;
-  src: url("fonts/TrindleSans-Italic-Variable.woff2") format("woff2");
+  src: url("fonts/TrindleSans-Italic-Variable.latin.woff2") format("woff2");
 }
 
 /* Design tokens, lifted verbatim from the app's own stylesheet.
@@ -233,20 +233,20 @@ code { font-family: inherit; font-weight: 600; }
 /* Navigation drawer */
 .demo-sidebar { width: 190px; flex-shrink: 0; background: var(--raised); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; transition: width 0.16s ease, opacity 0.16s ease; }
 .demo-sidebar.collapsed { width: 0; border-right: none; opacity: 0; }
-.demo-brand { display: flex; align-items: center; gap: 8px; padding: 13px 14px 6px; font-weight: 700; font-size: 13px; letter-spacing: 0.01em; white-space: nowrap; }
+.demo-brand { display: flex; align-items: center; gap: 8px; padding: 13px 14px 6px; font-weight: 700; font-size: 14px; letter-spacing: 0.01em; white-space: nowrap; }
 .demo-brand img { border-radius: 5px; flex-shrink: 0; }
 .demo-sidebar-header { padding: 5px 10px 9px; }
-.demo-search { width: 100%; padding: 8px 14px; border: none; border-radius: 100px; background: var(--raised); color: var(--fg); font-size: 12px; font-family: inherit; }
+.demo-search { width: 100%; padding: 8px 14px; border: none; border-radius: 100px; background: var(--raised); color: var(--fg); font-size: 14px; font-family: inherit; }
 .demo-search::placeholder { color: var(--muted-fg); }
 .demo-search:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
 .demo-note-list { list-style: none; margin: 0; padding: 2px 8px; overflow-y: auto; flex: 1; }
-.demo-note-list li { padding: 8px 12px; border-radius: 100px; cursor: pointer; font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--fg); margin-bottom: 2px; }
+.demo-note-list li { padding: 8px 12px; border-radius: 100px; cursor: pointer; font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--fg); margin-bottom: 2px; }
 .demo-note-list li:hover { background: var(--hover-layer); }
 .demo-note-list li.active { background: var(--accent-tint); color: var(--fg); font-weight: 700; }
 .demo-footer-actions { display: flex; gap: 6px; margin: 8px 10px 4px; }
-.demo-text-btn { flex: 1; padding: 7px; border: 1px solid var(--border); border-radius: 100px; background: transparent; color: var(--muted-fg); font-size: 11px; font-weight: 600; font-family: inherit; cursor: pointer; }
+.demo-text-btn { flex: 1; padding: 7px; border: 1px solid var(--border); border-radius: 100px; background: transparent; color: var(--muted-fg); font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; }
 .demo-text-btn:hover { background: var(--hover-layer); color: var(--fg); }
-.demo-version-link { display: block; text-align: center; margin: 4px 10px 10px; font-size: 10px; font-weight: 600; letter-spacing: 0.03em; color: var(--muted-fg); text-decoration: none; opacity: 0.8; }
+.demo-version-link { display: block; text-align: center; margin: 4px 10px 10px; font-size: 12px; font-weight: 600; letter-spacing: 0.03em; color: var(--muted-fg); text-decoration: none; opacity: 0.8; }
 .demo-version-link:hover { color: var(--link); text-decoration: underline; opacity: 1; }
 
 /* Top app bar */
@@ -276,10 +276,10 @@ code { font-family: inherit; font-weight: 600; }
 
 /* Segmented Writer / Markdown control */
 .demo-mode { display: flex; align-items: center; border: 1px solid var(--border); border-radius: 100px; overflow: hidden; }
-.demo-mode button { border: none; background: transparent; padding: 5px 12px; color: var(--muted-fg); cursor: pointer; font-family: inherit; font-size: 11.5px; font-weight: 600; }
+.demo-mode button { border: none; background: transparent; padding: 5px 12px; color: var(--muted-fg); cursor: pointer; font-family: inherit; font-size: 14px; font-weight: 600; }
 .demo-mode button:hover { background: var(--hover-layer); }
 .demo-mode button.active { background: var(--accent-tint); color: var(--fg); font-weight: 700; }
-.demo-save { font-size: 11px; font-weight: 600; color: var(--danger); text-align: center; }
+.demo-save { font-size: 14px; font-weight: 600; color: var(--danger); text-align: center; }
 /* The same save glow as the real app: the edge lights up for a moment,
    then goes back to normal. No word, no tick, nothing that moves. */
 @keyframes demo-saved {
@@ -500,8 +500,10 @@ footer { padding: 40px 24px 56px; text-align: center; }
      onto its own row above the title, spread edge to edge. */
   .demo-toolbar { flex-wrap: wrap; row-gap: 6px; }
   .demo-toolbar-right { order: -1; width: 100%; margin-left: 0; justify-content: space-between; gap: 6px; }
-  .demo-mode button { padding: 4px 8px; font-size: 11px; }
-  .demo-save { font-size: 10px; }
+  /* The text stays at 14px here, so the room comes out of the padding
+     instead. Without this the Markdown label is clipped by the pill. */
+  .demo-mode { flex: none; }
+  .demo-mode button, .demo-mode button:where(*) { padding-left: 9px; padding-right: 9px; white-space: nowrap; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -514,7 +516,7 @@ footer { padding: 40px 24px 56px; text-align: center; }
    the 44px a finger needs; above it, the mouse-sized replica is kept. */
 @media (max-width: 1023px) {
   .demo-icon-btn, .demo-menu-btn { min-width: 44px; min-height: 44px; }
-  .demo-mode button { min-height: 44px; padding-left: 14px; padding-right: 14px; }
+  .demo-mode button { min-height: 44px; padding-left: 12px; padding-right: 12px; }
   .demo-text-btn { min-height: 44px; }
   .demo-search, .demo-title { min-height: 44px; }
   .demo-note-list li { min-height: 44px; display: flex; align-items: center; }
