@@ -1,0 +1,19 @@
+services:
+  notespice:
+    image: ghcr.io/gh-lm/notespice:latest
+    container_name: notespice
+    restart: unless-stopped
+    environment:
+      NOTES_USERNAME: "admin"
+      NOTES_PASSWORD: "changeMe!" # change this before first run
+      # NOTES_INSECURE_COOKIES: "true"  # only for local http:// testing, never in production
+    volumes:
+      - /opt/media/notes:/notes
+      # Notes (*.md) and attachments (files/) live here -- this is the
+      # vault, the one directory worth backing up.
+      - /opt/notespice:/data
+      # App-only state (currently just the recently-viewed list, used
+      # for sidebar ordering) -- not notes, safe to lose, kept separate
+      # on purpose so it's never mixed in with your actual data.
+    ports:
+      - "8080:8080"

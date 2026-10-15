@@ -1,0 +1,258 @@
+/* Styling for the legal and error pages. The tokens mirror the ones in
+   index.html, which keeps its CSS inline so the home page renders with
+   no extra request. Change a colour in one and change it in the other.
+   Dark only: there is no light variant anywhere in Notespice. */
+:root {
+  color-scheme: dark;
+  /* The Lightmorphic charcoal set, copied from the house style rules and
+     not to be adjusted here. Three layers that each sit a step lighter
+     than the one below: the page, a panel on it, a card on the panel. A
+     typing box is the one thing that goes darker. */
+  --bg: #1c1e26;
+  --fg: #fafafa;
+  --border: #454955;
+  --muted: #3a3d48;
+  --muted-fg: #c2c2cc;
+  --panel: #282b34;
+  --panel-border: rgba(255, 255, 255, 0.09);
+  --raised: #343844;
+  --raised-border: rgba(255, 255, 255, 0.12);
+  --field: #14151b;
+  --field-border: #7e8494;
+  /* Light comes from above: a thin lit top edge and a short soft shadow
+     under each surface. Never write a shadow by hand, use these three. */
+  --edge-light: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  --shadow-panel: var(--edge-light), 0 0 0 1px rgba(0, 0, 0, 0.45),
+    0 4px 8px rgba(0, 0, 0, 0.35), 0 16px 32px -12px rgba(0, 0, 0, 0.55);
+  --shadow-raised: inset 0 1px 0 rgba(255, 255, 255, 0.10),
+    0 0 0 1px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0, 0, 0, 0.3),
+    0 8px 16px -8px rgba(0, 0, 0, 0.4);
+  --shadow-field: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+  /* The highlight colour: the main button, the current place, hover
+     edges, focus rings and the save glow. Never a colour written by
+     hand, always this token. */
+  --accent: #fbc711;
+  --accent-hover: #ddaf0f;
+  --on-accent: #645007;
+  --accent-container: #4b3c05;
+  --on-accent-container: #fde694;
+  --accent-tint: rgba(251, 199, 17, 0.16);
+  --brand-navy: #111827;
+  --link: #80c2f9;
+  --danger: #ffa39b;   --danger-bg: #350f0c;  --on-danger: #350f0c;
+  --success: #80cf83;  --success-bg: #102611;
+  --warning: #ffc006;  --warning-bg: #382a01;
+  --info: #80c2f9;     --info-bg: #072135;
+  /* How things are going, for dots and bars. Never the highlight colour. */
+  --state-calm: #2295f1;  --state-good: #4bae4f;  --state-busy: #fe9700;
+  --state-bad: #f34236;   --state-quiet: #9e9d9e;
+  --radius: 0.875rem;       /* controls and typing boxes */
+  --panel-radius: 1.375rem; /* panels: bigger surface, bigger radius */
+  --hover-layer: rgba(250, 250, 250, 0.07);
+  --shadow-1: var(--shadow-raised);
+  --shadow-3: var(--shadow-panel);
+  --max-w: 1040px;
+  --bm-content-width: min(1040px, calc(100% - 48px));
+}
+@font-face {
+  font-family: "Trindle Sans";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../fonts/TrindleSans-Variable.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Trindle Sans";
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../fonts/TrindleSans-Italic-Variable.woff2") format("woff2");
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "Trindle Sans", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+}
+a { color: var(--link); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.skip-link {
+  position: absolute; left: -9999px; top: 0;
+  background: var(--panel); color: var(--fg);
+  padding: 10px 16px; border: 1px solid var(--border); border-radius: 8px; z-index: 10;
+}
+.skip-link:focus { left: 12px; top: 12px; }
+
+/* The same menu bar as the home page: it stays at the top of the
+   window as you scroll, and its links go back to the sections there.
+   Kept in step with the copy inside index.html by hand. */
+.sitebar {
+  position: sticky; top: 0; z-index: 30;
+  background: var(--raised); border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+}
+.sitebar .inner { max-width: var(--max-w); margin: 0 auto;
+                  display: flex; align-items: center; gap: 18px; min-height: 60px; }
+.sitebar .brand { display: inline-flex; align-items: center; gap: 10px;
+                  font-weight: 700; color: var(--fg); text-decoration: none;
+                  min-height: 44px; }
+.sitebar .brand img { border-radius: 8px; }
+.sitebar .bar-end { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.sitebar .nav-join { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 999px; background: var(--accent); color: var(--on-accent); font-size: 15px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.sitebar .nav-join:hover { text-decoration: none; filter: brightness(1.08); }
+@media (max-width: 480px) { .sitebar .nav-join { padding: 6px 12px; font-size: 13px; line-height: 1.15; white-space: normal; text-align: center; max-width: 7.5rem; border-radius: 14px; } }
+.sitebar nav { display: flex; align-items: center; gap: 4px; }
+.sitebar nav a { color: var(--muted-fg); font-size: 15px; text-decoration: none;
+                 padding: 12px 10px; min-height: 44px; display: inline-flex;
+                 align-items: center; border-radius: 8px; }
+.sitebar nav a:hover { color: var(--fg); background: var(--raised); }
+/* Anything jumped to - the skip link's target included - has to clear
+   the bar rather than hide behind it. */
+:target, #main { scroll-margin-top: 76px; }
+@media (max-width: 700px) {
+  .sitebar nav { display: none; }
+  .sitebar .inner { min-height: 56px; }
+}
+
+/* One width for every page, the same as the top bar and the footer, so
+   moving between pages never makes the content fatter or thinner. */
+main { max-width: var(--max-w); margin: 0 auto; padding: 40px 24px 8px; }
+.panel {
+  background: var(--panel); border: 1px solid var(--panel-border);
+  border-radius: var(--panel-radius); box-shadow: var(--shadow-panel);
+  padding: 28px 28px 32px;
+}
+h1 { font-size: 32px; line-height: 1.2; margin: 0 0 6px; text-wrap: balance; }
+h2 { font-size: 20px; margin: 32px 0 8px; text-wrap: balance; }
+p, li { color: var(--fg); }
+.muted { color: var(--muted-fg); }
+.updated { color: var(--muted-fg); font-size: 16px; margin: 0 0 24px; }
+code { background: var(--field); border: 1px solid var(--border); padding: 0 5px;
+  border-radius: 6px; font-family: inherit; font-size: 0.92em; }
+ul { padding-left: 22px; }
+li { margin: 6px 0; }
+
+footer { padding: 40px 24px 56px; text-align: center; }
+footer .subfooter { text-align: left; }
+
+/* The site's own footer: three blocks across the width, the same as
+   Dockup and Nextup. The name and what this is on the left, the project
+   links centred, the pages hard against the right edge. Equal columns
+   would not do it, because each block is a different width and the space
+   left over would land unevenly. */
+.site-footer { max-width: var(--max-w); margin: 0 auto; text-align: left;
+  display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start;
+  justify-content: space-between; }
+.site-footer .footer-brand { display: flex; flex-direction: column;
+  align-items: flex-start; gap: 16px; max-width: 24rem; }
+.site-footer .brand { display: inline-flex; align-items: center; gap: 10px;
+  font-weight: 700; font-size: 17px; color: var(--fg); text-decoration: none; }
+.site-footer .brand img { border-radius: 8px; }
+.site-footer .footer-brand p { color: var(--muted-fg); font-size: 15px;
+  line-height: 1.65; margin: 0; }
+.site-footer .lightmorphic-badge { margin: 0; }
+
+/* The "Created by Lightmorphic" badge in the footer. A badge is one of
+   the two places a full-pill radius is allowed. */
+.lightmorphic-badge {
+  display: inline-flex; align-items: center; gap: 6px; width: fit-content;
+  margin: 0; background: var(--raised); border: 1px solid var(--raised-border);
+  border-radius: 999px; padding: 5px 11px 5px 8px;
+  box-shadow: var(--shadow-raised); text-decoration: none;
+  font-size: 0.72rem; color: var(--muted-fg);
+  transition: background 150ms ease, border-color 150ms ease;
+}
+.lightmorphic-badge:hover { background: var(--hover-layer); border-color: var(--accent); }
+.lightmorphic-badge img { display: block; height: 16px; width: auto; }
+.lightmorphic-badge .external-link-icon { display: block; width: 10px; height: 10px; opacity: 0.6; }
+.lightmorphic-badge .external-link-icon svg { width: 100%; height: 100%; display: block; }
+.site-footer .footer-nav { display: flex; flex-direction: column; min-width: 0; }
+.site-footer .footer-nav.foot-mid { text-align: center; align-items: center; }
+.site-footer .footer-nav.foot-end { text-align: right; align-items: flex-end; }
+.site-footer .footer-nav h2 { font-size: 12.5px; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--muted-fg); margin: 2px 0 10px;
+  font-weight: 700; }
+.site-footer .footer-nav a { color: var(--muted-fg); font-size: 15px;
+  font-weight: 600; text-decoration: none; display: inline-flex;
+  align-items: center; min-height: 40px; }
+.site-footer .footer-nav a:hover { color: var(--fg); text-decoration: underline; }
+/* Stacked or paired up, centred and right-aligned columns read badly, so
+   everything goes back to the left edge. */
+@media (max-width: 900px) {
+  .site-footer { justify-content: flex-start; gap: 32px 48px; }
+  .site-footer .footer-nav.foot-mid, .site-footer .footer-nav.foot-end {
+    text-align: left; align-items: flex-start; }
+}
+@media (max-width: 560px) { .site-footer { flex-direction: column; } }
+/* Company details on the left, the five legal links pushed to the
+   right on the same row; both stack and left-align on a narrow screen. */
+.subfooter {
+  max-width: var(--max-w); margin: 28px auto 0; padding-top: 22px;
+  border-top: 1px solid var(--border);
+  color: var(--muted-fg); font-size: 15px;
+  display: flex; flex-wrap: wrap; align-items: flex-end;
+  justify-content: space-between; gap: 8px 16px;
+}
+.subfooter .legal-text { flex: 1 1 320px; min-width: 0; }
+.subfooter p { margin: 0 0 4px; color: var(--muted-fg); }
+.subfooter a { text-decoration: none; }
+.subfooter .legal-text p:last-child { margin-bottom: 0; }
+.subfooter nav { flex: 0 1 auto; max-width: 100%; display: flex; flex-wrap: wrap; justify-content: flex-end; margin-right: -6px; }
+.subfooter nav a { display: inline-flex; align-items: center; justify-content: center; padding: 12px 6px; min-width: 44px; min-height: 44px; color: var(--muted-fg); font-size: 15px; }
+.subfooter nav a:hover { color: var(--fg); }
+@media (max-width: 700px) {
+  .subfooter nav { justify-content: flex-start; margin-left: -6px; margin-right: 0; }
+}
+
+/* A list whose items are destinations rather than prose: each link needs a
+   finger-sized target. Links inside a sentence are deliberately untouched. */
+.linklist li a { display: inline-flex; align-items: center; min-height: 44px; }
+
+/* The longer document pages: the changelog, the licence and the source
+   page. Same rhythm as the legal pages above, plus a third heading level
+   and a block for text that has to keep its own line breaks. */
+h3 { font-size: 16.5px; margin: 24px 0 6px; }
+pre { background: var(--raised); border: 1px solid var(--raised-border);
+  border-radius: var(--radius); box-shadow: var(--shadow-raised);
+  padding: 16px 18px; margin: 16px 0;
+  color: var(--fg); font-size: 13.5px; line-height: 1.55;
+  white-space: pre-wrap; overflow-wrap: break-word; }
+pre code { background: none; border: 0; padding: 0; border-radius: 0; font-size: inherit; }
+/* The changelog is one long run of releases, so each one after the first
+   gets a rule above it to break the page up. */
+.release { margin-top: 32px; }
+.release + .release { border-top: 1px solid var(--border); padding-top: 28px; }
+.release h2 { margin-top: 0; }
+/* The licence text is set verbatim, so it needs its own narrower type
+   and no wrapping surprises. */
+.licence-text { font-size: 12.5px; color: var(--muted-fg); }
+/* Tables and quoted notes, used by the documentation page. A table that
+   is too wide for a phone scrolls inside its own box rather than pushing
+   the whole page sideways. */
+.table-wrap { overflow-x: auto; margin: 16px 0;
+  border: 1px solid var(--raised-border); border-radius: var(--radius);
+  box-shadow: var(--shadow-raised); background: var(--raised); }
+table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border);
+  color: var(--fg); vertical-align: top; }
+th { font-weight: 700; white-space: nowrap; }
+tbody tr:last-child td { border-bottom: 0; }
+/* A text blockquote is the one place a left rule is allowed, and it
+   stays neutral: never the highlight colour. */
+blockquote { margin: 16px 0; padding: 12px 18px; background: var(--raised);
+  border: 1px solid var(--raised-border); border-left: 3px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow-raised); }
+blockquote p { margin: 6px 0; }
+ol { padding-left: 22px; }
+ol li { margin: 6px 0; }
+/* The download button on the source page. Worded, not an icon: this is a
+   public website, and people need to see what they are about to fetch. */
+.dl { display: inline-block; background: var(--accent); color: var(--on-accent);
+  font-weight: 700; text-decoration: none; padding: 11px 20px;
+  border-radius: 10px; margin-right: 10px; }
+.dl:hover, .dl:focus-visible { background: var(--accent-hover); }
+/* A nested bullet, where the markdown had one indented under another. */
+li.sub { margin-left: 18px; }

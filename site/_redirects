@@ -1,0 +1,11 @@
+# Addresses that used to live on other hosts. The source, the changelog and
+# the licence are pages on this site now, so the old paths point at them.
+# Permanent, because the old homes have gone for good.
+/code                 /source      301
+/code/*               /source      301
+/whats-new            /changelog   301
+# There is no public bug tracker. The security page is the only reporting
+# route there is, so that is where a visitor looking for one should land.
+/bugs                 /security    301
+# The American spelling, for anyone who types it.
+/license              /licence     301

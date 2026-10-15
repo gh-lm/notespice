@@ -1,0 +1,45 @@
+# Notespice
+
+> A self-hosted notes application with no database. Every note is a plain
+> markdown file on the operator's own disk. Published by Lightmorphic Ltd
+> under the GNU General Public Licence version 3.
+
+Notespice is a notes app you run yourself, usually as a single Docker
+container. It stores each note as an ordinary `.md` file in a folder you
+choose, so the notes can be read, moved, backed up or edited with any other
+tool, and nothing has to be exported to leave. There is no database, no
+account system and no third-party server involved.
+
+The editor supports the parts of GitHub Flavored Markdown people use most:
+tables, footnotes, task lists, strikethrough and GitHub-style callouts. It
+writes those back out as ordinary markdown. It is not a complete CommonMark
+or GFM implementation; constructs such as reference links, setext headings,
+indented code blocks and raw HTML blocks are not supported.
+
+It can be installed to a phone or desktop like an app, is dark throughout
+with no theme setting to configure, and exports every note and attachment to a dated zip
+that imports straight back in.
+
+## Pages
+- [Home](https://notespice.org/): what it is, a live editor to try, and how to run it
+- [Privacy](https://notespice.org/privacy): the site collects nothing; the host keeps ordinary server logs
+- [Cookies](https://notespice.org/cookies): none are set
+- [Terms](https://notespice.org/terms): GPL v3, no warranty, England and Wales
+- [Accessibility](https://notespice.org/accessibility): what was tested and what was not
+- [Complaints](https://notespice.org/complaints): how to raise a problem
+- [Documentation](https://notespice.org/docs): how to run it and every setting
+- [Changelog](https://notespice.org/changelog): every release
+- [Source](https://notespice.org/source): the source download
+- [Security](https://notespice.org/security): reporting a security problem
+- [Licence](https://notespice.org/licence): the GPL v3 text
+
+## The project
+- [Documentation](https://notespice.org/docs): the full manual, every setting, and how notes are stored
+- [Source](https://notespice.org/source): the whole source as one download, and how to build it
+- [Changelog](https://notespice.org/changelog): every release and what changed in it
+- [Security](https://notespice.org/security): how to report a security problem
+- [Licence](https://notespice.org/licence): the GNU General Public Licence, version 3
+
+There is no public code repository and no public bug tracker. The download on
+the source page is the complete source, and the ready-made container image is
+on Docker Hub as `lightmorphic/notespice`.

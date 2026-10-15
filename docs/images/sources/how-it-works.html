@@ -1,0 +1,70 @@
+<!doctype html><meta charset=utf-8><style>
+@font-face { font-family: "Trindle Sans"; src: url("../../../static/fonts/TrindleSans-Variable.woff2") format("woff2"); font-weight: 100 900; }
+* { box-sizing: border-box; margin: 0; }
+html, body { width: 1280px; height: 440px; }
+body { background: #1c1e26; font-family: "Trindle Sans", system-ui, sans-serif;
+  color: #fafafa; display: flex; align-items: center; justify-content: center;
+  gap: 26px; padding: 0 48px; }
+.step { width: 352px; height: 320px; background: #282b34; border-radius: 22px;
+  border: 1px solid rgba(255,255,255,.09); padding: 26px 26px 22px;
+  display: flex; flex-direction: column; box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 10px 26px rgba(0,0,0,.4); }
+.num { font-size: 13px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; }
+h2 { font-size: 23px; font-weight: 600; margin-top: 8px; letter-spacing: -.01em; }
+p { font-size: 15.5px; color: #c2c2cc; margin-top: 7px; line-height: 1.45; }
+.art { flex: 1; display: grid; place-items: center; margin-top: 14px; }
+.arrow { color: #5c6274; flex: none; }
+
+.s1 .num { color: #fbc711; }
+.s2 .num { color: #5eb6ff; }
+.s3 .num { color: #7fd99a; }
+
+.files { display: flex; gap: 9px; align-items: flex-end; }
+.file { width: 46px; height: 60px; border-radius: 7px; background: #14151b;
+  border: 1px solid #454955; position: relative; }
+.file::after { content: ".md"; position: absolute; left: 0; right: 0; bottom: 7px;
+  text-align: center; font-size: 10.5px; font-weight: 700; color: #fbc711; }
+.file i { position: absolute; left: 8px; right: 14px; top: 11px; height: 3px;
+  border-radius: 2px; background: #3a3d48; box-shadow: 0 8px 0 #3a3d48, 0 16px 0 #3a3d48; }
+
+.box { width: 150px; height: 96px; border-radius: 16px; background: #14151b;
+  border: 1px solid #5eb6ff55; display: grid; place-items: center;
+  box-shadow: 0 0 0 7px rgba(94,182,255,.09); }
+.box span { width: 40px; height: 52px; border-radius: 8px; background: #fbc711; transform: rotate(-7deg); }
+
+.win { width: 182px; height: 112px; border-radius: 12px; background: #14151b;
+  border: 1px solid #454955; overflow: hidden; }
+.bar { height: 22px; background: #282b34; display: flex; align-items: center; gap: 5px; padding: 0 9px; }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: #454955; }
+.body2 { display: flex; height: calc(100% - 22px); }
+.side { width: 48px; background: #1c1e26; border-right: 1px solid #343844; }
+.text { flex: 1; padding: 11px 10px; }
+.text i { display: block; height: 4px; border-radius: 2px; background: #3a3d48; margin-bottom: 7px; }
+.text i:first-child { background: #7fd99a; width: 54%; }
+.text i:nth-child(3) { width: 72%; }
+.text i:last-child { width: 44%; }
+</style>
+<div class="step s1">
+  <div class=num>Step one</div>
+  <h2>A folder on your disk</h2>
+  <p>Point Notespice at any directory. Your notes are ordinary markdown files, readable without it.</p>
+  <div class=art><div class=files>
+    <div class=file><i></i></div><div class=file><i></i></div><div class=file><i></i></div>
+  </div></div>
+</div>
+<svg class=arrow width="34" height="34" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8H13"/><path d="M9.5 4.5L13 8L9.5 11.5"/></svg>
+<div class="step s2">
+  <div class=num>Step two</div>
+  <h2>One small container</h2>
+  <p>A single image, two mounted folders, no database to run alongside it and nothing else to install.</p>
+  <div class=art><div class=box><span></span></div></div>
+</div>
+<svg class=arrow width="34" height="34" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8H13"/><path d="M9.5 4.5L13 8L9.5 11.5"/></svg>
+<div class="step s3">
+  <div class=num>Step three</div>
+  <h2>Any browser</h2>
+  <p>Write on a laptop, carry on from a phone. Same notes, same folder, nothing syncing through anyone else.</p>
+  <div class=art><div class=win>
+    <div class=bar><div class=dot></div><div class=dot></div><div class=dot></div></div>
+    <div class=body2><div class=side></div><div class=text><i></i><i></i><i></i><i></i></div></div>
+  </div></div>
+</div>

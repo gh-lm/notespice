@@ -1,0 +1,6 @@
+# Everything here is public and every crawler, including the ones that
+# answer questions rather than list links, is welcome to read it.
+User-agent: *
+Allow: /
+
+Sitemap: https://notespice.org/sitemap.xml

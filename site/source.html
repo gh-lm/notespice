@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#FFC107" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://apps.lightmorphic.com; style-src 'self'; img-src 'self' data: https://apps.lightmorphic.com; font-src 'self'; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'" />
+<meta name="referrer" content="strict-origin-when-cross-origin" />
+<title>Source | Notespice</title>
+<meta name="description" content="Download the full source of Notespice and build it yourself." />
+<link rel="canonical" href="https://notespice.org/source" />
+<link rel="icon" href="/favicon.ico" sizes="32x32" />
+<link rel="icon" type="image/png" sizes="512x512" href="/images/notespice-icon-512.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="/images/notespice-icon-192.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/notespice-icon-180.png" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Notespice" />
+<meta property="og:title" content="Source | Notespice" />
+<meta property="og:description" content="Download the full source of Notespice and build it yourself." />
+<meta property="og:url" content="https://notespice.org/source" />
+<meta property="og:image" content="https://notespice.org/images/notespice-share-card.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Notespice: notes without the nonsense" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Source | Notespice" />
+<meta name="twitter:description" content="Download the full source of Notespice and build it yourself." />
+<meta name="twitter:image" content="https://notespice.org/images/notespice-share-card.png" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "@id": "https://notespice.org/source",
+  "url": "https://notespice.org/source",
+  "name": "Source | Notespice",
+  "description": "Download the full source of Notespice and build it yourself.",
+  "dateModified": "2026-10-05",
+  "isPartOf": {
+    "@type": "WebSite",
+    "@id": "https://notespice.org/#website",
+    "url": "https://notespice.org/",
+    "name": "Notespice"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Lightmorphic Ltd",
+    "url": "https://lightmorphic.com"
+  }
+}
+</script>
+<link rel="stylesheet" href="/styles/legal.css?v=5ca19a96" />
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="sitebar">
+  <div class="inner">
+    <a class="brand" href="/">
+      <img src="/images/notespice-icon-80.png" width="28" height="28" alt="" />
+      Notespice
+    </a>
+    <div class="bar-end">
+      <nav aria-label="Sections">
+        <a href="/#why">Why</a>
+        <a href="/#features">Features</a>
+        <a href="/#faq">Questions</a>
+        <a href="/#get-started">Get started</a>
+      </nav>
+      <div id="all-apps"></div>
+    </div>
+  </div>
+</header>
+<main id="main"><div class="panel">
+<h1>Source</h1>
+<p class="updated">The code, and what to do with it.</p>
+
+<h2>Download</h2>
+<p>Notespice is free software under the GNU General Public Licence, version 3
+or later. Anyone who is given the program is entitled to its source, so here
+it is, as one archive.</p>
+<p><a class="dl" href="/notespice-source.tar.gz" download>notespice-source.tar.gz</a>
+<span class="muted">664 KB, 31 files</span></p>
+<p>Check it against this before you trust it:</p>
+<pre><code>sha256  982978b3f6b4fce61526cfe8d86c6eed729370ad4cb5b7f247a837d7b8cb01b4</code></pre>
+<p>This archive is the program: the Rust server, the browser frontend, the
+Dockerfile, the build files and the documentation. The pages of this website
+are not part of the program and are not in it.</p>
+
+<h2>Building it yourself</h2>
+<p>You need a Rust toolchain, which you can get from
+<a href="https://rustup.rs">rustup</a>, or Docker if you would rather build the
+image.</p>
+<pre><code>tar xzf notespice-source.tar.gz
+cd notespice
+cargo build --release</code></pre>
+<p>The binary lands in <code>target/release/notespice</code>. To build the
+container image instead:</p>
+<pre><code>docker build -t notespice .</code></pre>
+<p>The full instructions, including every setting, are on the
+<a href="/docs">documentation page</a>.</p>
+
+<h2>The ready-made image</h2>
+<p>If you only want to run Notespice rather than build it, the image is
+published on
+<a href="https://hub.docker.com/r/lightmorphic/notespice">Docker Hub</a> as
+<code>lightmorphic/notespice</code>.</p>
+
+<h2>Why there is no code host</h2>
+<p>There is no public repository to browse. The archive above is the whole
+source, and it is replaced whenever a new version is released, so it always
+matches the current image. The <a href="/changelog">changelog</a> records what
+changed in each release.</p>
+
+</div></main>
+<footer>
+  <!-- Three blocks across the width, the same as Dockup and Nextup: the
+       name and what this is on the left, the project links centred, the
+       pages hard against the right edge. -->
+  <div class="site-footer">
+    <div class="footer-brand">
+      <a class="brand" href="/"><img src="/images/notespice-icon-80.png" width="30" height="30" alt="" />Notespice</a>
+      <p>Plain markdown notes you host yourself. No database, no account, and
+      nothing holding your files hostage. Made by Lightmorphic and given away
+      under the GPL.</p>
+      <a class="lightmorphic-badge" href="https://lightmorphic.com" target="_blank" rel="noopener noreferrer" translate="no">
+        <span>Created by</span>
+        <img src="/images/lightmorphic-dark-tb-250x50-sq.webp" alt="Lightmorphic" width="80" height="16" loading="lazy" />
+        <span class="external-link-icon" aria-hidden="true">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            <path d="M15 3h6v6"/>
+            <line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+        </span>
+      </a>
+    </div>
+    <nav class="footer-nav foot-mid" aria-label="The project">
+      <h2>The project</h2>
+      <a href="https://hub.docker.com/r/lightmorphic/notespice" target="_blank" rel="noopener noreferrer" aria-label="Docker Hub (opens in a new tab)">Docker Hub</a>
+      <a href="/source">Source</a>
+      <a href="/changelog">Changelog</a>
+      <a href="/security">Security</a>
+      <a href="/licence">Licence</a>
+    </nav>
+    <nav class="footer-nav foot-end" aria-label="Pages">
+      <h2>Pages</h2>
+      <a href="/#why">Why</a>
+      <a href="/#features">Features</a>
+      <a href="/#faq">Questions</a>
+      <a href="/#get-started">Get started</a>
+      <a href="/docs">Documentation</a>
+    </nav>
+  </div>
+  <div class="subfooter">
+    <div class="legal-text">
+      <p>&copy; Lightmorphic Ltd. Registered in England and Wales, company number
+        17423646.</p>
+      <p>Registered office: 82A James Carter Road, Mildenhall, IP28 7DE.</p>
+      <p>Page last updated: <time datetime="2026-10-05">5 October 2026</time>.</p>
+    </div>
+    <nav aria-label="Legal">
+      <a href="/privacy.html">Privacy</a>
+      <a href="/cookies.html">Cookies</a>
+      <a href="/terms.html">Terms</a>
+      <a href="/accessibility.html">Accessibility</a>
+      <a href="/complaints.html">Complaints</a>
+    </nav>
+  </div>
+</footer>
+<script src="https://apps.lightmorphic.com/launcher.js" defer></script>
+</body>
+</html>

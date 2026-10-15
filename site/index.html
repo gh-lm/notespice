@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#FFC107" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://apps.lightmorphic.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://apps.lightmorphic.com; font-src 'self'; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'" />
+<meta name="referrer" content="strict-origin-when-cross-origin" />
+<title>Notespice: self-hosted markdown notes, no database</title>
+<meta name="description" content="A self-hosted notes app with no database. Every note is a plain markdown file on your own disk, written by an editor you can install like an app, with nothing locking your notes in." />
+<link rel="canonical" href="https://notespice.org/" />
+
+<link rel="icon" href="favicon.ico" sizes="32x32" />
+<link rel="icon" type="image/png" sizes="512x512" href="images/notespice-icon-512.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="images/notespice-icon-192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="images/notespice-icon-32.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="images/notespice-icon-180.png" />
+
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Notespice" />
+<meta property="og:title" content="Notespice: self-hosted markdown notes, no database" />
+<meta property="og:description" content="Every note is a plain markdown file on your own disk. Installable like an app, and nothing locking your notes in." />
+<meta property="og:url" content="https://notespice.org/" />
+<meta property="og:image" content="https://notespice.org/images/notespice-share-card.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Notespice: notes without the nonsense" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Notespice: self-hosted markdown notes, no database" />
+<meta name="twitter:description" content="Every note is a plain markdown file on your own disk. Installable like an app, and nothing locking your notes in." />
+<meta name="twitter:image" content="https://notespice.org/images/notespice-share-card.png" />
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://notespice.org/#app",
+      "name": "Notespice",
+      "url": "https://notespice.org/",
+      "applicationCategory": "Productivity",
+      "operatingSystem": "Any platform that runs Docker",
+      "description": "A self-hosted notes app with no database. Every note is a plain markdown file on disk.",
+      "license": "https://notespice.org/code/file/LICENSE",
+      "isAccessibleForFree": true,
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "GBP" },
+      "softwareHelp": "https://notespice.org/code/file/README.md",
+      "codeRepository": "https://notespice.org/code",
+      "image": "https://notespice.org/images/notespice-share-card.png",
+      "publisher": { "@id": "https://notespice.org/#publisher" }
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://notespice.org/#publisher",
+      "name": "Lightmorphic Ltd",
+      "url": "https://lightmorphic.com",
+      "logo": "https://notespice.org/images/notespice-icon-512.png",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "82A James Carter Road",
+        "addressLocality": "Mildenhall",
+        "postalCode": "IP28 7DE",
+        "addressCountry": "GB"
+      }
+    }
+  ]
+}
+</script>
+<style>
+
+/* Trindle Sans, self-hosted under the SIL Open Font Licence (fonts/OFL.txt
+   and fonts/OFL-RadioCanada.txt sit beside the font, because the licence
+   asks for it). One variable file covers weights 100 to 900, with a real
+   italic beside it. Zero external requests: served from this repo, never
+   fetched from a font CDN. */
+@font-face {
+  font-family: "Trindle Sans";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("fonts/TrindleSans-Variable.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Trindle Sans";
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("fonts/TrindleSans-Italic-Variable.woff2") format("woff2");
+}
+
+/* Design tokens, lifted verbatim from the app's own stylesheet.
+   Notespice is dark only - one palette, no light variant and nothing
+   to switch between. Cool navy neutrals with the brand yellow
+   (#FFC107) as the one fixed point. */
+:root {
+  color-scheme: dark;
+  /* The Lightmorphic charcoal set, copied from the house style rules and
+     not to be adjusted here. Three layers that each sit a step lighter
+     than the one below: the page, a panel on it, a card on the panel. A
+     typing box is the one thing that goes darker. */
+  --bg: #1c1e26;
+  --fg: #fafafa;
+  --border: #454955;
+  --muted: #3a3d48;
+  --muted-fg: #c2c2cc;
+  --panel: #282b34;
+  --panel-border: rgba(255, 255, 255, 0.09);
+  --raised: #343844;
+  --raised-border: rgba(255, 255, 255, 0.12);
+  --field: #14151b;
+  --field-border: #7e8494;
+  /* Light comes from above: a thin lit top edge and a short soft shadow
+     under each surface. Never write a shadow by hand, use these three. */
+  --edge-light: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  --shadow-panel: var(--edge-light), 0 0 0 1px rgba(0, 0, 0, 0.45),
+    0 4px 8px rgba(0, 0, 0, 0.35), 0 16px 32px -12px rgba(0, 0, 0, 0.55);
+  --shadow-raised: inset 0 1px 0 rgba(255, 255, 255, 0.10),
+    0 0 0 1px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0, 0, 0, 0.3),
+    0 8px 16px -8px rgba(0, 0, 0, 0.4);
+  --shadow-field: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+  /* The highlight colour: the main button, the current place, hover
+     edges, focus rings and the save glow. Never a colour written by
+     hand, always this token. */
+  --accent: #fbc711;
+  --accent-hover: #ddaf0f;
+  --on-accent: #645007;
+  --accent-container: #4b3c05;
+  --on-accent-container: #fde694;
+  --accent-tint: rgba(251, 199, 17, 0.16);
+  --brand-navy: #111827;
+  --link: #80c2f9;
+  --danger: #ffa39b;   --danger-bg: #350f0c;  --on-danger: #350f0c;
+  --success: #80cf83;  --success-bg: #102611;
+  --warning: #ffc006;  --warning-bg: #382a01;
+  --info: #80c2f9;     --info-bg: #072135;
+  /* How things are going, for dots and bars. Never the highlight colour. */
+  --state-calm: #2295f1;  --state-good: #4bae4f;  --state-busy: #fe9700;
+  --state-bad: #f34236;   --state-quiet: #9e9d9e;
+  --radius: 0.875rem;       /* controls and typing boxes */
+  --panel-radius: 1.375rem; /* panels: bigger surface, bigger radius */
+  --hover-layer: rgba(250, 250, 250, 0.07);
+  --shadow-1: var(--shadow-raised);
+  --shadow-3: var(--shadow-panel);
+  --yaml-key: #7fb0ff;
+  --yaml-str: #ffd479;
+  --max-w: 1200px; --max-w-narrow: 1040px; --measure: 68ch;
+  --bm-content-width: min(1040px, calc(100% - 48px));
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: "Trindle Sans", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.55; }
+
+/* Scrollbars in the app's own palette (same rules as the app). */
+* { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: var(--border); border-radius: 6px; }
+*::-webkit-scrollbar-thumb:hover { background: var(--muted-fg); }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.sitebar {
+  position: sticky; top: 0; z-index: 30;
+  background: var(--raised); border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+}
+/* Same column as the sections below, so the brand lines up with the
+   headings rather than floating out to the left of them. */
+.sitebar .inner { max-width: var(--max-w-narrow); margin: 0 auto;
+                  display: flex; align-items: center; gap: 18px; min-height: 60px; }
+.sitebar .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; color: var(--fg); text-decoration: none; min-height: 44px; }
+.sitebar .brand img { border-radius: 8px; }
+.sitebar nav { display: flex; align-items: center; gap: 4px; }
+.sitebar nav a { color: var(--muted-fg); font-size: 15px; text-decoration: none; padding: 12px 10px; min-height: 44px; display: inline-flex; align-items: center; border-radius: 8px; }
+.sitebar nav a:hover { color: var(--fg); background: var(--raised); }
+.sitebar .bar-end { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.sitebar .nav-join { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 999px; background: var(--accent); color: var(--on-accent); font-size: 15px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.sitebar .nav-join:hover { text-decoration: none; filter: brightness(1.08); }
+@media (max-width: 480px) { .sitebar .nav-join { padding: 6px 12px; font-size: 13px; line-height: 1.15; white-space: normal; text-align: center; max-width: 7.5rem; border-radius: 14px; } }
+/* The sticky bar would otherwise sit on top of whatever an anchor jumps to. */
+:target, section[id] { scroll-margin-top: 76px; }
+@media (max-width: 700px) {
+  .sitebar nav { display: none; }
+  .sitebar .inner { min-height: 56px; }
+}
+
+section, header, footer { padding: 0 24px; }
+.inner { max-width: var(--max-w); margin: 0 auto; }
+.inner-narrow { max-width: var(--max-w-narrow); margin: 0 auto; }
+h1, h2, h3 { font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+hr { border: none; border-top: 1px solid var(--border); margin: 0; }
+/* Trindle Sans everywhere, code included — no separate monospace face. */
+code { font-family: inherit; font-weight: 600; }
+
+/* ---- hero: stacked, demo below the text block ---- */
+.hero { padding: 84px 24px 88px; }
+.hero .inner { display: flex; flex-direction: column; align-items: center; gap: 52px; text-align: center; }
+.hero-text { display: flex; flex-direction: column; align-items: center; max-width: 720px; }
+.hero-text h1 { font-size: clamp(38px, 5.4vw, 58px); line-height: 1.06; letter-spacing: -0.025em;
+  margin: 0; text-wrap: balance; }
+.hero-text .tagline { font-size: 18.5px; line-height: 1.62; color: var(--muted-fg);
+  margin: 20px 0 32px; max-width: 34em; text-wrap: pretty; }
+.hero-text .tagline code { color: var(--fg); }
+.cta-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px;
+  padding: 13px 28px; border-radius: 100px; font-weight: 700; font-size: 15px;
+  border: 1px solid transparent; transition: box-shadow 160ms ease, background 160ms ease, border-color 160ms ease; }
+.btn-primary { background: var(--accent); color: var(--on-accent); box-shadow: var(--shadow-1); }
+.btn-primary:hover { text-decoration: none; box-shadow: var(--shadow-3); }
+.btn-secondary { background: transparent; color: var(--fg); border-color: var(--border); }
+.btn-secondary:hover { text-decoration: none; background: var(--hover-layer); }
+/* Three plain facts under the buttons, not a paragraph to read. */
+.hero-points { list-style: none; display: flex; flex-wrap: wrap; justify-content: center;
+  gap: 8px 22px; padding: 0; margin: 24px 0 0; color: var(--muted-fg); font-size: 15px; }
+.hero-points li { display: inline-flex; align-items: center; gap: 8px; }
+.hero-points li::before { content: ""; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent); flex: none; }
+
+/* ---- app-window demo: a scaled-down copy of the real app's
+   chrome — drawer, app bar, segmented control, extended FAB ---- */
+.demo-wrap { width: 100%; max-width: var(--max-w); }
+.app-window {
+  position: relative;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 24px;
+  overflow: hidden; box-shadow: 0 24px 70px rgba(0,0,0,0.30), 0 2px 10px rgba(0,0,0,0.15);
+  display: flex; height: 480px; text-align: left;
+}
+
+/* Navigation drawer */
+.demo-sidebar { width: 190px; flex-shrink: 0; background: var(--raised); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; transition: width 0.16s ease, opacity 0.16s ease; }
+.demo-sidebar.collapsed { width: 0; border-right: none; opacity: 0; }
+.demo-brand { display: flex; align-items: center; gap: 8px; padding: 13px 14px 6px; font-weight: 700; font-size: 13px; letter-spacing: 0.01em; white-space: nowrap; }
+.demo-brand img { border-radius: 5px; flex-shrink: 0; }
+.demo-sidebar-header { padding: 5px 10px 9px; }
+.demo-search { width: 100%; padding: 8px 14px; border: none; border-radius: 100px; background: var(--raised); color: var(--fg); font-size: 12px; font-family: inherit; }
+.demo-search::placeholder { color: var(--muted-fg); }
+.demo-search:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.demo-note-list { list-style: none; margin: 0; padding: 2px 8px; overflow-y: auto; flex: 1; }
+.demo-note-list li { padding: 8px 12px; border-radius: 100px; cursor: pointer; font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--fg); margin-bottom: 2px; }
+.demo-note-list li:hover { background: var(--hover-layer); }
+.demo-note-list li.active { background: var(--accent-tint); color: var(--fg); font-weight: 700; }
+.demo-footer-actions { display: flex; gap: 6px; margin: 8px 10px 4px; }
+.demo-text-btn { flex: 1; padding: 7px; border: 1px solid var(--border); border-radius: 100px; background: transparent; color: var(--muted-fg); font-size: 11px; font-weight: 600; font-family: inherit; cursor: pointer; }
+.demo-text-btn:hover { background: var(--hover-layer); color: var(--fg); }
+.demo-version-link { display: block; text-align: center; margin: 4px 10px 10px; font-size: 10px; font-weight: 600; letter-spacing: 0.03em; color: var(--muted-fg); text-decoration: none; opacity: 0.8; }
+.demo-version-link:hover { color: var(--link); text-decoration: underline; opacity: 1; }
+
+/* Top app bar */
+.demo-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.demo-toolbar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid var(--border); background: var(--panel); }
+.demo-menu-btn { border: none; background: transparent; color: var(--fg); border-radius: 100px; width: 30px; height: 30px; padding: 0; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.demo-menu-btn:hover { background: var(--hover-layer); }
+.demo-menu-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; }
+.demo-appbar-logo { width: 17px; height: 17px; border-radius: 5px; flex-shrink: 0; opacity: 0.9; }
+.demo-title { flex: 1; border: none; background: transparent; color: var(--fg); font-size: 15px; font-weight: 700; letter-spacing: 0.005em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: inherit; outline: none; padding: 0; min-width: 0; }
+.demo-toolbar-right { display: flex; align-items: center; gap: 12px; margin-left: auto; flex-shrink: 0; }
+.demo-undo-redo { display: flex; align-items: center; gap: 1px; }
+.demo-icon-btn { border: none; background: transparent; color: var(--fg); border-radius: 100px; width: 28px; height: 28px; padding: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: inherit; }
+.demo-icon-btn:hover { background: var(--hover-layer); }
+.demo-icon-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; }
+.demo-icon-btn.demo-danger:hover { background: color-mix(in srgb, var(--danger) 15%, transparent); color: var(--danger); }
+.demo-icon-btn.demo-danger.confirming {
+  width: auto;
+  padding: 0 12px;
+  background: var(--danger);
+  color: var(--on-danger);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.demo-icon-btn.demo-danger.confirming:hover { background: var(--danger); color: var(--on-danger); }
+
+/* Segmented Writer / Markdown control */
+.demo-mode { display: flex; align-items: center; border: 1px solid var(--border); border-radius: 100px; overflow: hidden; }
+.demo-mode button { border: none; background: transparent; padding: 5px 12px; color: var(--muted-fg); cursor: pointer; font-family: inherit; font-size: 11.5px; font-weight: 600; }
+.demo-mode button:hover { background: var(--hover-layer); }
+.demo-mode button.active { background: var(--accent-tint); color: var(--fg); font-weight: 700; }
+.demo-save { font-size: 11px; font-weight: 600; color: var(--danger); text-align: center; }
+/* The same save glow as the real app: the edge lights up for a moment,
+   then goes back to normal. No word, no tick, nothing that moves. */
+@keyframes demo-saved {
+  0%, 100% { box-shadow: inset 0 0 0 0 transparent; }
+  25%, 60% { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--accent) 55%, transparent); }
+}
+.demo-main.just-saved { animation: demo-saved 1.6s ease; }
+@media (prefers-reduced-motion: reduce) { .demo-main.just-saved { animation: none; } }
+
+/* Format bar */
+.demo-formatbar { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; padding: 6px 10px; border-bottom: 1px solid var(--border); background: var(--panel); }
+.demo-formatbar button { width: 26px; height: 26px; border: none; background: transparent; color: var(--fg); border-radius: 100px; padding: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.demo-formatbar button:hover { background: var(--hover-layer); }
+.demo-formatbar button svg { width: 13px; height: 13px; stroke: currentColor; fill: none; }
+.demo-formatbar .sep { width: 1px; align-self: stretch; background: var(--border); margin: 2px 4px; flex-shrink: 0; }
+.demo-formatbar select {
+  border: 1px solid var(--border); background-color: var(--panel); color: var(--fg);
+  border-radius: 100px; height: 26px; font-size: 11px; font-weight: 600; font-family: inherit; padding: 0 8px; cursor: pointer; flex-shrink: 0;
+}
+
+/* Extended FAB — the primary action, same as the app */
+.demo-fab {
+  position: absolute; right: 16px; bottom: 16px; z-index: 5;
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 16px 0 13px; height: 42px;
+  border: none; border-radius: 14px;
+  background: var(--accent); color: var(--on-accent);
+  font-size: 12.5px; font-weight: 700; font-family: inherit; cursor: pointer;
+  box-shadow: var(--shadow-3);
+  transition: box-shadow 0.15s ease, transform 0.1s ease;
+}
+.demo-fab svg { width: 16px; height: 16px; stroke: currentColor; fill: none; }
+.demo-fab:hover { box-shadow: 0 6px 14px 4px rgba(0,0,0,0.22), 0 2px 5px rgba(0,0,0,0.2); }
+.demo-fab:active { transform: scale(0.97); }
+
+/* Note content — the app's editor styles, scaled down */
+.demo-body { flex: 1; min-height: 0; overflow-y: auto; }
+#demo-editor { padding: 12px 20px 70px; outline: none; font-size: 14px; line-height: 1.6; }
+#demo-editor h1 { font-size: 19px; font-weight: 700; margin: 0.5em 0 0.3em; }
+#demo-editor h2 { font-size: 16px; font-weight: 700; margin: 0.5em 0 0.3em; }
+#demo-editor h3 { font-size: 14px; font-weight: 700; margin: 0.5em 0 0.3em; }
+#demo-editor h4, #demo-editor h5, #demo-editor h6 { font-size: 13px; font-weight: 700; margin: 0.5em 0 0.3em; color: var(--muted-fg); }
+#demo-editor ul, #demo-editor ol { padding-left: 20px; margin: 0.5em 0; }
+#demo-editor ul.task-list { list-style: none; padding-left: 4px; }
+#demo-editor ul.task-list li { display: flex; align-items: baseline; gap: 6px; }
+#demo-editor ul.task-list input[type="checkbox"] { accent-color: var(--accent); }
+#demo-editor p { margin: 1.2em 0; white-space: pre-line; }
+#demo-editor > p:first-child { margin-top: 0; }
+#demo-editor > h1:first-child { margin-top: 0; }
+#demo-editor code { background: var(--field); padding: 1px 5px; border-radius: 5px; font-weight: 600; font-size: 0.92em; }
+#demo-editor pre { background: var(--field); border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; margin: 0.6em 0; white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere; line-height: 1.8; font-family: inherit; }
+#demo-editor pre code { background: none; border: none; padding: 0; border-radius: 0; font-weight: 500; }
+#demo-editor blockquote { border-left: 3px solid var(--border); margin: 0.6em 0; padding: 1px 0 1px 10px; color: var(--muted-fg); }
+#demo-editor hr { border: none; border-top: 2px solid var(--border); margin: 1em 0; }
+#demo-editor a { color: var(--link); text-underline-offset: 2px; }
+#demo-editor img { max-width: 100%; border-radius: 10px; }
+#demo-editor table { border-collapse: collapse; margin: 0.6em 0; font-size: 12.5px; }
+#demo-editor th, #demo-editor td { border: 1px solid var(--border); padding: 5px 9px; }
+#demo-editor th { background: var(--field); font-weight: 700; text-align: left; }
+#demo-editor sup.footnote-ref { color: var(--link); font-size: 0.75em; }
+.md-alert { border: 1px solid var(--info); background: color-mix(in srgb, var(--info) 12%, transparent); border-radius: var(--radius); padding: 7px 12px; margin: 0.6em 0; }
+.md-alert p { margin: 0.25em 0; }
+.md-alert-title { font-weight: 700; color: var(--link); font-size: 12px; }
+.md-alert-tip { border-color: var(--success); background: color-mix(in srgb, var(--success) 12%, transparent); } .md-alert-tip .md-alert-title { color: var(--success); }
+.md-alert-important { border-color: #b763c5; background: color-mix(in srgb, #b763c5 12%, transparent); } .md-alert-important .md-alert-title { color: #b763c5; }
+.md-alert-warning { border-color: var(--warning); background: color-mix(in srgb, var(--warning) 12%, transparent); } .md-alert-warning .md-alert-title { color: var(--warning); }
+.md-alert-caution { border-color: var(--danger); background: color-mix(in srgb, var(--danger) 10%, transparent); } .md-alert-caution .md-alert-title { color: var(--danger); }
+.footnotes { margin-top: 1em; font-size: 11.5px; color: var(--muted-fg); }
+.footnotes hr { margin-bottom: 0.6em; }
+.footnotes ol { padding-left: 18px; }
+#demo-raw { display: none; width: 100%; height: 100%; min-height: 300px; border: none; outline: none; resize: none; padding: 14px 20px 70px; background: var(--panel); color: var(--fg); font-family: inherit; font-size: 13px; line-height: 1.6; }
+
+/* Each question and its answer sit in one panel. They used to be two
+   plain columns - every question in the left, every answer in the
+   right - which drifted apart as soon as the answers ran to different
+   lengths. */
+.faq { display: grid; gap: 16px; margin-top: 28px; align-items: start;
+       grid-template-columns: repeat(auto-fit, minmax(min(380px, 100%), 1fr)); }
+.faq-item { background: var(--panel); border: 1px solid var(--border);
+            border-radius: 16px; padding: 20px 22px; box-shadow: var(--shadow-1); }
+.faq-item h3 { font-size: 16.5px; margin: 0 0 8px; text-wrap: balance; }
+.faq-item p { color: var(--muted-fg); font-size: 15px; margin: 0; }
+.hero-caption { font-size: 16px; color: var(--muted-fg); margin-top: 16px; text-align: center; }
+.hero-caption strong { color: var(--fg); }
+
+/* ---- sections ---- */
+/* The 24px is inside the max-width, so the text column stays exactly
+   --max-w-narrow on a wide screen and still clears the edge of a phone. */
+.section { max-width: calc(var(--max-w-narrow) + 48px); margin: 0 auto; padding: 60px 24px; }
+.section h2 { font-size: 27px; margin-bottom: 16px; }
+.section-prose .lead { max-width: none; }
+@media (min-width: 900px) {
+  .section-prose { display: grid; align-items: start; column-gap: 64px;
+                   grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr); }
+  .section-prose > h2 { margin: 0; }
+  .section-prose > .lead { grid-column: 2; margin: 0; }
+  .section-prose > .lead + .lead { margin-top: 16px; }
+}
+.section p.lead { color: var(--muted-fg); font-size: 16px; max-width: var(--measure); }
+.section p.lead strong { color: var(--fg); }
+
+.feature-rows { margin-top: 26px; }
+@media (min-width: 860px) {
+  .feature-rows { display: grid; grid-template-columns: 1fr 1fr; column-gap: 52px; }
+}
+.feature-row { display: flex; gap: 18px; padding: 16px 0; }
+.feature-icon { width: 34px; height: 34px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 12px; background: var(--raised); border: 1px solid var(--border); color: var(--link); font-size: 15px; }
+.feature-row h3 { font-size: 15.5px; margin-bottom: 4px; }
+.feature-row p { color: var(--muted-fg); font-size: 14px; margin: 0; max-width: var(--measure); }
+
+pre.code-block { background: var(--field); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; overflow-x: auto; font-family: inherit; font-size: 13.5px; font-weight: 500; line-height: 1.6; margin: 20px 0; }
+pre.code-block .comment { color: var(--muted-fg); }
+pre.code-block .key { color: var(--yaml-key); }
+pre.code-block .str { color: var(--yaml-str); }
+
+/* The marker is drawn by CSS, so the list keeps role="list" for the
+   screen readers that drop list semantics when list-style is none. */
+ol.steps { list-style: none; padding: 0; margin: 22px 0 0; counter-reset: step;
+           display: grid; gap: 14px;
+           grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr)); }
+ol.steps li { counter-increment: step; margin: 0; color: var(--muted-fg);
+              font-size: 14.5px; background: var(--panel);
+              border: 1px solid var(--border); border-radius: 16px;
+              padding: 18px 20px; box-shadow: var(--shadow-1); }
+ol.steps li::before { content: counter(step); display: inline-flex;
+              align-items: center; justify-content: center;
+              width: 26px; height: 26px; margin-bottom: 12px;
+              border-radius: 8px; background: var(--accent-tint);
+              color: var(--accent); font-weight: 700; font-size: 13px; }
+ol.steps strong { display: block; color: var(--fg); margin-bottom: 6px; }
+.closer { color: var(--muted-fg); font-size: 16px; max-width: var(--measure); margin: 26px 0 0; }
+ol.steps code { background: var(--field); padding: 2px 7px; border-radius: 6px;
+              color: var(--fg); font-size: 13px; overflow-wrap: anywhere;
+              -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+
+.skip-link { position: absolute; left: -9999px; top: 0; background: var(--panel); color: var(--fg); padding: 10px 16px; border: 1px solid var(--border); border-radius: 8px; z-index: 20; }
+.skip-link:focus { left: 12px; top: 12px; }
+footer { padding: 40px 24px 56px; text-align: center; }
+/* The site's own footer: three blocks across the width, the same as
+   Dockup and Nextup. The name and what this is on the left, the project
+   links centred, the pages hard against the right edge. Equal columns
+   would not do it, because each block is a different width and the space
+   left over would land unevenly. */
+.site-footer { max-width: var(--max-w-narrow); margin: 0 auto; text-align: left;
+  display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start;
+  justify-content: space-between; }
+.site-footer .footer-brand { display: flex; flex-direction: column;
+  align-items: flex-start; gap: 16px; max-width: 24rem; }
+.site-footer .brand { display: inline-flex; align-items: center; gap: 10px;
+  font-weight: 700; font-size: 17px; color: var(--fg); text-decoration: none; }
+.site-footer .brand img { border-radius: 8px; }
+.site-footer .footer-brand p { color: var(--muted-fg); font-size: 15px;
+  line-height: 1.65; margin: 0; }
+.site-footer .lightmorphic-badge { margin: 0; }
+.site-footer .footer-nav { display: flex; flex-direction: column; min-width: 0; }
+.site-footer .footer-nav.foot-mid { text-align: center; align-items: center; }
+.site-footer .footer-nav.foot-end { text-align: right; align-items: flex-end; }
+.site-footer .footer-nav h2 { font-size: 12.5px; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--muted-fg); margin: 2px 0 10px;
+  font-weight: 700; }
+.site-footer .footer-nav a { color: var(--muted-fg); font-size: 15px;
+  font-weight: 600; text-decoration: none; display: inline-flex;
+  align-items: center; min-height: 40px; }
+.site-footer .footer-nav a:hover { color: var(--fg); text-decoration: underline; }
+/* Stacked or paired up, centred and right-aligned columns read badly, so
+   everything goes back to the left edge. */
+@media (max-width: 900px) {
+  .site-footer { justify-content: flex-start; gap: 32px 48px; }
+  .site-footer .footer-nav.foot-mid, .site-footer .footer-nav.foot-end {
+    text-align: left; align-items: flex-start; }
+}
+@media (max-width: 560px) { .site-footer { flex-direction: column; } }
+/* Company details on the left, the five legal links pushed to the
+   right on the same row; both stack and left-align on a narrow screen. */
+.subfooter { max-width: var(--max-w-narrow); margin: 28px auto 0; padding-top: 22px; border-top: 1px solid var(--border); color: var(--muted-fg); font-size: 15px; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 8px 16px; text-align: left; }
+.subfooter .legal-text { flex: 1 1 320px; min-width: 0; }
+.subfooter p { margin: 0 0 4px; color: var(--muted-fg); }
+.subfooter .legal-text p:last-child { margin-bottom: 0; }
+.subfooter nav { flex: 0 1 auto; max-width: 100%; display: flex; flex-wrap: wrap; justify-content: flex-end; margin-right: -6px; }
+.subfooter nav a { display: inline-flex; align-items: center; justify-content: center; padding: 12px 6px; min-width: 44px; min-height: 44px; color: var(--muted-fg); font-size: 15px; }
+.subfooter nav a:hover { color: var(--fg); }
+@media (max-width: 700px) { .subfooter nav { justify-content: flex-start; margin-left: -6px; margin-right: 0; } }
+
+/* "Created by Lightmorphic" pill, same shape as the one in the app
+   itself. The light-ink wordmark, which is the one that reads on the
+   dark canvas. */
+.lightmorphic-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: fit-content;
+  margin: 20px auto 0;
+  background: var(--raised);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 5px 11px 5px 8px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 4px 12px rgba(0, 0, 0, 0.15);
+  text-decoration: none;
+  font-size: 0.72rem;
+  color: var(--muted-fg);
+  transition: background 150ms ease, border-color 150ms ease;
+}
+.lightmorphic-badge:hover { background: var(--hover-layer); border-color: var(--muted-fg); }
+.lightmorphic-badge img { display: block; height: 16px; width: auto; }
+.lightmorphic-badge .external-link-icon { display: block; width: 10px; height: 10px; opacity: 0.6; }
+.lightmorphic-badge .external-link-icon svg { width: 100%; height: 100%; }
+
+@media (max-width: 1023px) {
+  .app-window { height: 520px; flex-direction: column; }
+  .demo-sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+  .demo-sidebar.collapsed { width: 100%; height: 0; opacity: 0; border-bottom: none; }
+  .demo-brand, .demo-footer-actions, .demo-version-link { display: none; }
+  .demo-sidebar-header { padding-top: 10px; }
+  .demo-note-list { display: flex; gap: 4px; padding: 0 8px 8px; overflow-x: auto; flex: none; }
+  .demo-note-list li { flex-shrink: 0; margin-bottom: 0; }
+  /* Same trick as the app's mobile app bar: the action group wraps
+     onto its own row above the title, spread edge to edge. */
+  .demo-toolbar { flex-wrap: wrap; row-gap: 6px; }
+  .demo-toolbar-right { order: -1; width: 100%; margin-left: 0; justify-content: space-between; gap: 6px; }
+  .demo-mode button { padding: 4px 8px; font-size: 11px; }
+  .demo-save { font-size: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { transition: none !important; }
+}
+
+/* Touch targets for the demo. The demo is a miniature of the real app, so
+   its controls are drawn small on purpose. Below tablet width they grow to
+   the 44px a finger needs; above it, the mouse-sized replica is kept. */
+@media (max-width: 1023px) {
+  .demo-icon-btn, .demo-menu-btn { min-width: 44px; min-height: 44px; }
+  .demo-mode button { min-height: 44px; padding-left: 14px; padding-right: 14px; }
+  .demo-text-btn { min-height: 44px; }
+  .demo-search, .demo-title { min-height: 44px; }
+  .demo-note-list li { min-height: 44px; display: flex; align-items: center; }
+  .demo-version-link { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; }
+  .demo-formatbar button { min-width: 44px; min-height: 44px; }
+  .demo-formatbar select { min-height: 44px; }
+  #demo-editor, #demo-raw { font-size: 16px; }
+  .demo-fab { min-height: 44px; }
+  .lightmorphic-badge { min-height: 44px; }
+}
+
+/* The pill that names a control on pointing, in place of the browser's
+   own tooltip. Only inside the demo: the rest of the page is text and
+   links that say what they are. */
+.hover-label {
+  position: fixed;
+  z-index: 60;
+  white-space: nowrap;
+  pointer-events: none;
+  font: 600 0.75rem/1 inherit;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #343844;
+  color: #fafafa;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45), 0 4px 10px rgba(0, 0, 0, 0.45);
+}
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "@id": "https://notespice.org/#faq",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where are my notes actually stored?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "In a folder you choose on your own machine, one ordinary .md file per note. Nothing is held in a database and nothing is kept on anybody else's server. You can open that folder in any file manager and read the notes with any text editor."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does Notespice send anything to you or to anyone else?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. The software makes no outbound connections of its own. It does not check for updates, report errors, or load fonts, scripts or images from another company. Everything it needs ships inside the container."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What does it cost?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Nothing. It is free software under version 3 of the GNU General Public Licence, which lets you use it, change it and pass it on, so long as what you pass on stays free in the same way. There is no paid tier, no account and nothing held back."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What do I need to run it?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A machine that runs Docker, and two folders on disk: one for your notes and one for the app's own small amount of state. It listens on port 8080 by default. There is nothing else to install."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I read my notes in another app?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, and that is the point. They are plain markdown files, so any editor opens them. If you stop using Notespice tomorrow, the notes stay exactly where they are and nothing needs converting."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I get everything out at once?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "One button exports every note and attachment as a dated zip file. The same zip imports straight back in, so it doubles as a backup you can check by opening it."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does it work on a phone?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. It installs to a phone or a desktop like an app, and the editor is built for a touch screen as well as a keyboard."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Which parts of markdown does it support?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The parts most people use: headings, bold and italic, lists, task lists, tables, footnotes, strikethrough, code blocks and coloured callouts. It is not a complete implementation of the markdown specification. Reference links, indented code blocks and raw HTML blocks, for instance, are not supported."
+      }
+    }
+  ]
+}
+</script>
+</head>
+<body>
+
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="sitebar">
+  <div class="inner">
+    <a class="brand" href="#top">
+      <img id="brand-logo" src="images/notespice-icon-80.png" width="28" height="28" alt="" />
+      Notespice
+    </a>
+    <div class="bar-end">
+      <nav aria-label="Sections">
+        <a href="#why">Why</a>
+        <a href="#features">Features</a>
+        <a href="#faq">Questions</a>
+        <a href="#get-started">Get started</a>
+      </nav>
+      <div id="all-apps"></div>
+    </div>
+  </div>
+</header>
+<section class="hero" id="top">
+  <div class="inner">
+    <div class="hero-text">
+      <h1>Notes without the nonsense</h1>
+      <p class="tagline">Write in markdown. Keep the files. Notespice runs on your own machine and saves every note as an ordinary <code>.md</code> file you can open with anything, for as long as you like.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="#get-started">Get started</a>
+        <a class="btn btn-secondary" href="#demo">Try the editor</a>
+      </div>
+      <ul class="hero-points">
+        <li>One container to run</li>
+        <li>No database</li>
+        <li>Nothing to sign up for</li>
+      </ul>
+    </div>
+
+    <div class="demo-wrap" id="demo">
+      <div class="app-window">
+        <aside class="demo-sidebar" id="demo-sidebar">
+          <div class="demo-brand">
+            <img id="demo-brand-logo" alt="" width="18" height="18" />
+            <span>Notespice</span>
+          </div>
+          <div class="demo-sidebar-header">
+            <input type="search" class="demo-search" id="demo-search" aria-label="Search the demo notes" placeholder="Search notes"
+                   data-label="Searching inside notes is only in the real app" />
+          </div>
+          <ul class="demo-note-list" id="demo-note-list"></ul>
+          <div class="demo-footer-actions">
+            <button type="button" class="demo-text-btn" data-label="Only in the real app">Export all</button>
+            <button type="button" class="demo-text-btn" data-label="Only in the real app">Import</button>
+          </div>
+          <span class="demo-version-link">Notespice</span>
+        </aside>
+        <div class="demo-main">
+          <div class="demo-toolbar">
+            <button type="button" class="demo-menu-btn" id="demo-menu" aria-label="Toggle sidebar"><svg aria-hidden="true" viewBox="0 0 16 16" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 4L13.5 4"/><path d="M2.5 8L13.5 8"/><path d="M2.5 12L13.5 12"/></svg></button>
+            <img class="demo-appbar-logo" id="demo-appbar-logo" alt="" width="17" height="17" />
+            <input class="demo-title" id="demo-title" value="Try it out" aria-label="Demo note title" placeholder="Untitled note" />
+            <div class="demo-toolbar-right">
+              <div class="demo-undo-redo">
+                <button type="button" class="demo-icon-btn" id="demo-undo" aria-label="Undo"><svg aria-hidden="true" viewBox="0 0 16 16" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5H10.5A3.5 3.5 0 0 1 10.5 13.5H8"/><path d="M5.5 3.5L2.5 6.5L5.5 9.5"/></svg></button>
+                <button type="button" class="demo-icon-btn" id="demo-redo" aria-label="Redo"><svg aria-hidden="true" viewBox="0 0 16 16" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13.5 6.5H5.5A3.5 3.5 0 0 0 5.5 13.5H8"/><path d="M10.5 3.5L13.5 6.5L10.5 9.5"/></svg></button>
+              </div>
+              <div class="demo-mode">
+                <button type="button" id="demo-mode-write" class="active">Writer</button>
+                <button type="button" id="demo-mode-raw">Markdown</button>
+              </div>
+              <span class="demo-save" id="demo-save"></span>
+              <button type="button" class="demo-icon-btn demo-danger" id="demo-delete" aria-label="Delete note"><svg aria-hidden="true" viewBox="0 0 16 16" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.25 4L13.75 4"/><path d="M6 4V2.75A1 1 0 0 1 7 1.75H9A1 1 0 0 1 10 2.75V4"/><path d="M3.75 4L4.5 13A1.4 1.4 0 0 0 5.9 14.25H10.1A1.4 1.4 0 0 0 11.5 13L12.25 4"/><path d="M6.75 7L6.75 11"/><path d="M9.25 7L9.25 11"/></svg></button>
+            </div>
+          </div>
+          <div class="demo-formatbar" id="demo-formatbar"></div>
+          <div class="demo-body">
+            <div id="demo-editor" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Demo note content"></div>
+            <textarea id="demo-raw" aria-label="Demo note, markdown source" spellcheck="false"></textarea>
+          </div>
+        </div>
+        <button type="button" class="demo-fab" id="demo-newbtn"><svg aria-hidden="true" viewBox="0 0 16 16" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 1.75H9.5L12.25 4.5V13A1.25 1.25 0 0 1 11 14.25H4A1.25 1.25 0 0 1 2.75 13V3A1.25 1.25 0 0 1 4 1.75Z"/><path d="M5 9.25L10 9.25"/><path d="M7.5 6.75L7.5 11.75"/></svg><span>New note</span></button>
+      </div>
+      <p class="hero-caption"><strong>This is not a screenshot. Type in it.</strong> The real editor, running here in your browser: write a note, use the whole toolbar, flip to Markdown to see exactly what gets saved to disk. Nothing you type leaves this page. (Search inside notes, import and export and the rest are in the real thing.)</p>
+    </div>
+  </div>
+</section>
+
+<hr />
+
+<main id="content">
+<section class="section section-prose" id="why">
+  <h2>Your notes are just files. That's the whole idea.</h2>
+  <p class="lead">Notespice keeps your notes as <strong>plain markdown files on disk</strong>. No database, no proprietary format, nothing you can't open in any other editor the moment you stop using this one.</p>
+  <p class="lead">There's no account system, no subscription, and no third-party server holding your notes. It's one container, one folder of <code>.md</code> files, and an editor that works the same on your phone and your laptop.</p>
+</section>
+
+<hr />
+
+<section class="section" id="features">
+  <h2>A full markdown editor, without the baggage.</h2>
+  <div class="feature-rows">
+    <div class="feature-row">
+      <div class="feature-icon">&#9638;</div>
+      <div><h3>No database</h3><p>Every note is a <code>.md</code> file. Move it, back it up, or read it with any other tool. Nothing is locked away.</p></div>
+    </div>
+    <div class="feature-row">
+      <div class="feature-icon">&#9998;</div>
+      <div><h3>The markdown you actually use</h3><p>Tables, footnotes, task lists, strikethrough and coloured callouts, all written back out as ordinary markdown any other editor can read.</p></div>
+    </div>
+    <div class="feature-row">
+      <div class="feature-icon">&#9166;</div>
+      <div><h3>Blank lines that stay</h3><p>Press Enter three times and the extra empty line is really there, saved as a literal <code>&lt;br&gt;</code> line in the markdown, so the gap is still there wherever you open the file next.</p></div>
+    </div>
+    <div class="feature-row">
+      <div class="feature-icon">&#8855;</div>
+      <div><h3>Zero-dependency editor</h3><p>A small hand-written markdown converter, not a third-party library loaded from a CDN, so there is nothing external to version-mismatch or break.</p></div>
+    </div>
+    <div class="feature-row">
+      <div class="feature-icon">&#9670;</div>
+      <div><h3>Self-hosted</h3><p>Runs in one Docker container. Your notes live on your own disk, not someone else's server.</p></div>
+    </div>
+    <div class="feature-row">
+      <div class="feature-icon">&#9680;</div>
+      <div><h3>Dark throughout</h3><p>One considered dark palette everywhere. No theme setting to hunt for.</p></div>
+    </div>
+    <div class="feature-row">
+      <div class="feature-icon">&#8645;</div>
+      <div><h3>Import / export</h3><p>One click exports every note and attachment as a dated zip. Import it right back in, always yours to take.</p></div>
+    </div>
+    <div class="feature-row">
+      <div class="feature-icon">&#9638;</div>
+      <div><h3>Installable PWA</h3><p>Add it to your home screen. Use it like a native app, on desktop or mobile.</p></div>
+    </div>
+  </div>
+</section>
+
+<hr />
+
+<section class="section" id="faq">
+
+  <h2>Questions people ask</h2>
+  <div class="faq">
+    <div class="faq-item">
+      <h3>Where are my notes actually stored?</h3>
+      <p>In a folder you choose on your own machine, one ordinary <code>.md</code> file per note. Nothing is held in a database and nothing is kept on anybody else's server. You can open that folder in any file manager and read the notes with any text editor.</p>
+    </div>
+    <div class="faq-item">
+      <h3>Does Notespice send anything to you or to anyone else?</h3>
+      <p>No. The software makes no outbound connections of its own. It does not check for updates, report errors, or load fonts, scripts or images from another company. Everything it needs ships inside the container.</p>
+    </div>
+    <div class="faq-item">
+      <h3>What does it cost?</h3>
+      <p>Nothing. It is free software under version 3 of the GNU General Public Licence, which lets you use it, change it and pass it on, so long as what you pass on stays free in the same way. There is no paid tier, no account and nothing held back.</p>
+    </div>
+    <div class="faq-item">
+      <h3>What do I need to run it?</h3>
+      <p>A machine that runs Docker, and two folders on disk: one for your notes and one for the app's own small amount of state. It listens on port 8080 by default. There is nothing else to install.</p>
+    </div>
+    <div class="faq-item">
+      <h3>Can I read my notes in another app?</h3>
+      <p>Yes, and that is the point. They are plain markdown files, so any editor opens them. If you stop using Notespice tomorrow, the notes stay exactly where they are and nothing needs converting.</p>
+    </div>
+    <div class="faq-item">
+      <h3>How do I get everything out at once?</h3>
+      <p>One button exports every note and attachment as a dated zip file. The same zip imports straight back in, so it doubles as a backup you can check by opening it.</p>
+    </div>
+    <div class="faq-item">
+      <h3>Does it work on a phone?</h3>
+      <p>Yes. It installs to a phone or a desktop like an app, and the editor is built for a touch screen as well as a keyboard.</p>
+    </div>
+    <div class="faq-item">
+      <h3>Which parts of markdown does it support?</h3>
+      <p>The parts most people use: headings, bold and italic, lists, task lists, tables, footnotes, strikethrough, code blocks and coloured callouts. It is not a complete implementation of the markdown specification. Reference links, indented code blocks and raw HTML blocks, for instance, are not supported.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="get-started">
+  <h2>Running in about two minutes.</h2>
+  <p class="lead">Notespice ships as a Docker image, published on <a href="https://hub.docker.com/r/lightmorphic/notespice" target="_blank" rel="noopener noreferrer" aria-label="Notespice on Docker Hub (opens in a new tab)">Docker Hub</a>. Point it at two folders on disk, one for your notes and one for the app's own small bit of state, and it takes care of the rest.</p>
+
+<pre class="code-block"><span class="comment"># docker-compose.yml</span>
+<span class="key">services</span>:
+  <span class="key">notespice</span>:
+    <span class="key">image</span>: <span class="str">lightmorphic/notespice:latest</span>
+    <span class="key">container_name</span>: <span class="str">notespice</span>
+    <span class="key">restart</span>: <span class="str">unless-stopped</span>
+    <span class="key">environment</span>:
+      <span class="key">NOTES_USERNAME</span>: <span class="str">"admin"</span>
+      <span class="key">NOTES_PASSWORD</span>: <span class="str">"changeMe!"</span>
+    <span class="key">volumes</span>:
+      - <span class="str">/opt/media/notes:/notes</span>
+      - <span class="str">/opt/notespice:/data</span>
+    <span class="key">ports</span>:
+      - <span class="str">"8080:8080"</span></pre>
+
+  <ol class="steps" role="list">
+    <li><strong>Create the data folders</strong><code>sudo mkdir -p /opt/media/notes /opt/notespice</code></li>
+    <li><strong>Start the container</strong><code>docker compose up -d</code></li>
+    <li><strong>Open it</strong>Visit <code>http://your-server:8080</code> and write your first note</li>
+  </ol>
+  <p class="closer">That is the whole thing. No account to create, no plan to
+  choose, and nothing to cancel later. If you stop using it tomorrow, your notes
+  are already sitting in a folder you own, in a format that outlives all of us.</p>
+</section>
+</main>
+
+<hr />
+
+<footer>
+  <!-- Three blocks across the width, the same as Dockup and Nextup: the
+       name and what this is on the left, the project links centred, the
+       pages hard against the right edge. -->
+  <div class="site-footer">
+    <div class="footer-brand">
+      <a class="brand" href="/"><img src="/images/notespice-icon-80.png" width="30" height="30" alt="" />Notespice</a>
+      <p>Plain markdown notes you host yourself. No database, no account, and
+      nothing holding your files hostage. Made by Lightmorphic and given away
+      under the GPL.</p>
+      <a class="lightmorphic-badge" href="https://lightmorphic.com" target="_blank" rel="noopener noreferrer" translate="no">
+        <span>Created by</span>
+        <img src="/images/lightmorphic-dark-tb-250x50-sq.webp" alt="Lightmorphic" width="80" height="16" loading="lazy" />
+        <span class="external-link-icon" aria-hidden="true">
+          <svg aria-hidden="true" viewBox="0 0 16 16" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.75 2.75H13.25V7.25"/><path d="M13.25 2.75L7.5 8.5"/><path d="M11.5 9.5V12.75A1.5 1.5 0 0 1 10 14.25H3.75A1.5 1.5 0 0 1 2.25 12.75V6.5A1.5 1.5 0 0 1 3.75 5H7"/></svg>
+        </span>
+      </a>
+    </div>
+    <nav class="footer-nav foot-mid" aria-label="The project">
+      <h2>The project</h2>
+      <a href="https://hub.docker.com/r/lightmorphic/notespice" target="_blank" rel="noopener noreferrer" aria-label="Docker Hub (opens in a new tab)">Docker Hub</a>
+      <a href="/source">Source</a>
+      <a href="/changelog">Changelog</a>
+      <a href="/security">Security</a>
+      <a href="/licence">Licence</a>
+    </nav>
+    <nav class="footer-nav foot-end" aria-label="Pages">
+      <h2>Pages</h2>
+      <a href="/#why">Why</a>
+      <a href="/#features">Features</a>
+      <a href="/#faq">Questions</a>
+      <a href="/#get-started">Get started</a>
+      <a href="/docs">Documentation</a>
+    </nav>
+  </div>
+  <div class="subfooter">
+    <div class="legal-text">
+      <p>&copy; Lightmorphic Ltd. Registered in England and Wales, company number
+        17423646.</p>
+      <p>Registered office: 82A James Carter Road, Mildenhall, IP28 7DE.</p>
+      <p>Page last updated: <time datetime="2026-10-05">5 October 2026</time>.</p>
+    </div>
+    <nav aria-label="Legal">
+      <a href="/privacy.html">Privacy</a>
+      <a href="/cookies.html">Cookies</a>
+      <a href="/terms.html">Terms</a>
+      <a href="/accessibility.html">Accessibility</a>
+      <a href="/complaints.html">Complaints</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var mode = "write";
+  var notes = {
+    "Try it out": "# Try it out\n\nType some **markdown** and watch it render, live. Use the full toolbar above, not just the basics.\n\n- No sign up\n- No database\n- Just files\n\n> [!TIP]\n> Switch to Markdown mode to see the raw text this actually produces.\n\nEven footnotes work[^1].\n\n[^1]: And they survive the round trip to disk and back.",
+    "Grocery List": "Milk, eggs, and coffee.\n\n- [ ] Stop by the market\n- [x] Order more coffee\n- [ ] Don't forget the coffee (again)",
+    "Feature Tour": "## A quick tour\n\n| Feature | Supported |\n| --- | --- |\n| Tables | Yes |\n| Footnotes | Yes |\n| Callouts | Yes |\n\n> [!WARNING]\n> This table is not a screenshot either.\n\n```\ndocker compose up -d\n```"
+  };
+  var order = ["Try it out", "Grocery List", "Feature Tour"];
+  var current = "Try it out";
+
+  function el(id) { return document.getElementById(id); }
+  function escapeHtml(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+  // ---- inline markdown (within a single line) <-> html ----
+  function inlineMdToHtml(text) {
+    var html = escapeHtml(text);
+    var codes = [];
+    html = html.replace(/`([^`]+)`/g, function (_, c) {
+      codes.push(c);
+      return "\u0000C" + (codes.length - 1) + "\u0000";
+    });
+    html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">');
+    html = html.replace(/\[\^([^\]]+)\]/g, '<sup class="footnote-ref" data-fn="$1">$1</sup>');
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+    html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    html = html.replace(/~~([^~]+)~~/g, "<del>$1</del>");
+    html = html.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+    html = html.replace(/\u0000C(\d+)\u0000/g, function (_, i) { return "<code>" + codes[+i] + "</code>"; });
+    return html;
+  }
+
+  function inlineNodeToMd(node) {
+    var out = "";
+    node.childNodes.forEach(function (child) {
+      if (child.nodeType === 3) { out += child.textContent; return; }
+      if (child.nodeType !== 1) return;
+      var tag = child.tagName.toLowerCase();
+      if (tag === "input" && child.type === "checkbox") return;
+      var inner = inlineNodeToMd(child);
+      if (tag === "strong" || tag === "b") out += "**" + inner + "**";
+      else if (tag === "em" || tag === "i") out += "*" + inner + "*";
+      else if (tag === "del" || tag === "s" || tag === "strike") out += "~~" + inner + "~~";
+      else if (tag === "code") out += "`" + inner + "`";
+      else if (tag === "a") out += "[" + inner + "](" + child.getAttribute("href") + ")";
+      else if (tag === "img") out += "![" + (child.getAttribute("alt") || "") + "](" + child.getAttribute("src") + ")";
+      else if (tag === "sup" && child.classList.contains("footnote-ref")) out += "[^" + child.getAttribute("data-fn") + "]";
+      else if (tag === "br") out += "\n";
+      else if (tag === "ul" || tag === "ol") { }
+      else out += inner;
+    });
+    return out;
+  }
+
+  function inlineOnly(node) {
+    var clone = node.cloneNode(true);
+    clone.querySelectorAll("ul, ol").forEach(function (n) { n.remove(); });
+    var cb = clone.querySelector('input[type="checkbox"]');
+    if (cb) cb.remove();
+    return inlineNodeToMd(clone).replace(/^\s+/, "");
+  }
+
+  var HEADING_PATTERNS = [
+    [/^######\s+/, "h6"], [/^#####\s+/, "h5"], [/^####\s+/, "h4"],
+    [/^###\s+/, "h3"], [/^##\s+/, "h2"], [/^#\s+/, "h1"]
+  ];
+
+  var footnoteDefs;
+  function mdToHtmlInner(md) {
+    var lines = md.split("\n");
+    var html = "";
+    var i = 0;
+    var stack = [];
+
+    function closeListsTo(indent) {
+      while (stack.length && stack[stack.length - 1].indent >= indent) {
+        const frame = stack.pop();
+        if (frame.liOpen) html += "</li>";
+        html += "</" + frame.type + ">";
+        if (stack.length && stack[stack.length - 1].liOpen) {
+          html += "</li>";
+          stack[stack.length - 1].liOpen = false;
+        }
+      }
+    }
+    function closeAllLists() { closeListsTo(-1); }
+
+    while (i < lines.length) {
+      var raw = lines[i];
+
+      if (/^```/.test(raw)) {
+        closeAllLists();
+        var lang = raw.replace(/^```/, "").trim();
+        var code = [];
+        i++;
+        while (i < lines.length && !/^```/.test(lines[i])) { code.push(lines[i]); i++; }
+        html += '<pre' + (lang ? ' data-lang="' + escapeHtml(lang) + '"' : "") + '><code>' + escapeHtml(code.join("\n")) + "</code></pre>";
+        i++;
+        continue;
+      }
+
+      if (/^\|.*\|\s*$/.test(raw) && i + 1 < lines.length && /^\|[\s:|-]+\|\s*$/.test(lines[i + 1])) {
+        closeAllLists();
+        var headerCells = raw.replace(/^\||\|\s*$/g, "").split("|").map(function (c) { return c.trim(); });
+        i += 2;
+        var rows = [];
+        while (i < lines.length && /^\|.*\|\s*$/.test(lines[i])) {
+          rows.push(lines[i].replace(/^\||\|\s*$/g, "").split("|").map(function (c) { return c.trim(); }));
+          i++;
+        }
+        html += "<table><thead><tr>" + headerCells.map(function (c) { return "<th>" + inlineMdToHtml(c) + "</th>"; }).join("") + "</tr></thead><tbody>";
+        rows.forEach(function (r) {
+          html += "<tr>" + r.map(function (c) { return "<td>" + inlineMdToHtml(c) + "</td>"; }).join("") + "</tr>";
+        });
+        html += "</tbody></table>";
+        continue;
+      }
+
+      var headingHit = HEADING_PATTERNS.find(function (p) { return p[0].test(raw); });
+      if (headingHit) {
+        closeAllLists();
+        html += "<" + headingHit[1] + ">" + inlineMdToHtml(raw.replace(headingHit[0], "")) + "</" + headingHit[1] + ">";
+        i++;
+        continue;
+      }
+
+      var fnDefMatch = raw.match(/^\[\^([^\]]+)\]:\s*(.*)$/);
+      if (fnDefMatch) {
+        closeAllLists();
+        footnoteDefs.push({ id: fnDefMatch[1], html: inlineMdToHtml(fnDefMatch[2]) });
+        i++;
+        continue;
+      }
+
+      if (/^>\s?\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/i.test(raw)) {
+        closeAllLists();
+        var alertType = raw.match(/\[!(\w+)\]/i)[1].toUpperCase();
+        var firstLine = raw.replace(/^>\s?\[!\w+\]\s*/i, "");
+        var body = [firstLine];
+        i++;
+        while (i < lines.length && /^>\s?/.test(lines[i])) { body.push(lines[i].replace(/^>\s?/, "")); i++; }
+        var bodyText = body.join(" ").trim();
+        html += '<div class="md-alert md-alert-' + alertType.toLowerCase() + '"><p class="md-alert-title">' + alertType.charAt(0) + alertType.slice(1).toLowerCase() + "</p>" +
+          (bodyText ? "<p>" + inlineMdToHtml(bodyText) + "</p>" : "") + "</div>";
+        continue;
+      }
+
+      if (/^>\s?/.test(raw)) {
+        closeAllLists();
+        var quote = [];
+        while (i < lines.length && /^>\s?/.test(lines[i])) { quote.push(lines[i].replace(/^>\s?/, "")); i++; }
+        html += "<blockquote><p>" + inlineMdToHtml(quote.join(" ")) + "</p></blockquote>";
+        continue;
+      }
+
+      if (/^(---|\*\*\*)\s*$/.test(raw)) { closeAllLists(); html += "<hr>"; i++; continue; }
+
+      var listMatch = raw.match(/^(\s*)([-*]|\d+\.)\s+(.*)$/);
+      if (listMatch) {
+        var indent = listMatch[1].length;
+        var marker = listMatch[2];
+        var content = listMatch[3];
+        var type = /\d+\./.test(marker) ? "ol" : "ul";
+        var checkMatch = content.match(/^\[( |x|X)\]\s+(.*)$/);
+        var isCheck = !!checkMatch;
+
+        closeListsTo(indent + 1);
+        if (!stack.length || stack[stack.length - 1].indent < indent) {
+          stack.push({ indent: indent, type: type, liOpen: false });
+          html += "<" + type + (isCheck ? ' class="task-list"' : "") + ">";
+        } else if (stack[stack.length - 1].indent === indent && stack[stack.length - 1].type !== type) {
+          var old = stack.pop();
+          if (old.liOpen) html += "</li>";
+          html += "</" + old.type + ">";
+          stack.push({ indent: indent, type: type, liOpen: false });
+          html += "<" + type + (isCheck ? ' class="task-list"' : "") + ">";
+        }
+
+        var top = stack[stack.length - 1];
+        if (top.liOpen) html += "</li>";
+        if (isCheck) {
+          var checked = /x/i.test(checkMatch[1]);
+          html += "<li><label><input type=\"checkbox\"" + (checked ? " checked" : "") + "> " + inlineMdToHtml(checkMatch[2]) + "</label>";
+        } else {
+          html += "<li>" + inlineMdToHtml(content);
+        }
+        top.liOpen = true;
+        i++;
+        continue;
+      }
+
+      if (raw.trim() === "") { closeAllLists(); i++; continue; }
+
+      closeAllLists();
+      html += "<p>" + inlineMdToHtml(raw) + "</p>";
+      i++;
+    }
+    closeAllLists();
+
+    if (footnoteDefs.length) {
+      html += '<div class="footnotes"><hr><ol>';
+      footnoteDefs.forEach(function (fn) {
+        html += '<li id="fn-' + escapeHtml(fn.id) + '">' + fn.html + "</li>";
+      });
+      html += "</ol></div>";
+    }
+
+    return html || "<p></p>";
+  }
+
+  function mdToHtml(md) {
+    footnoteDefs = [];
+    return mdToHtmlInner(md);
+  }
+
+  function serializeList(listEl, depth) {
+    var lines = [];
+    var isOl = listEl.tagName.toLowerCase() === "ol";
+    var n = 1;
+    listEl.querySelectorAll(":scope > li").forEach(function (li) {
+      var indent = "  ".repeat(depth);
+      var cb = li.querySelector(':scope > label > input[type="checkbox"], :scope > input[type="checkbox"]');
+      var text = inlineOnly(li);
+      if (cb) {
+        lines.push(indent + "- [" + (cb.checked ? "x" : " ") + "] " + text);
+      } else if (isOl) {
+        lines.push(indent + (n++) + ". " + text);
+      } else {
+        lines.push(indent + "- " + text);
+      }
+      var nested = li.querySelector(":scope > ul, :scope > ol");
+      if (nested) lines.push(serializeList(nested, depth + 1));
+    });
+    return lines.join("\n");
+  }
+
+  function htmlToMd(container) {
+    var out = [];
+    container.childNodes.forEach(function (node) {
+      if (node.nodeType !== 1) return;
+      var tag = node.tagName.toLowerCase();
+      if (/^h[1-6]$/.test(tag)) out.push("#".repeat(+tag[1]) + " " + inlineOnly(node));
+      else if (tag === "blockquote") out.push("> " + node.textContent);
+      else if (tag === "div" && node.classList.contains("md-alert")) {
+        var type = Array.from(node.classList).find(function (c) { return c.indexOf("md-alert-") === 0; }).replace("md-alert-", "").toUpperCase();
+        var bodyP = node.querySelector("p:not(.md-alert-title)");
+        var bodyText = bodyP ? inlineOnly(bodyP) : "";
+        out.push("> [!" + type + "]" + (bodyText ? "\n> " + bodyText : ""));
+      } else if (tag === "div" && node.classList.contains("footnotes")) {
+        var lines = [];
+        node.querySelectorAll("li").forEach(function (li) {
+          var id = li.id.replace(/^fn-/, "");
+          lines.push("[^" + id + "]: " + inlineOnly(li));
+        });
+        out.push(lines.join("\n\n"));
+      } else if (tag === "hr") out.push("---");
+      else if (tag === "pre") {
+        var lang = node.getAttribute("data-lang") || "";
+        out.push("```" + lang + "\n" + node.textContent + "\n```");
+      } else if (tag === "ul" || tag === "ol") {
+        out.push(serializeList(node, 0));
+      } else if (tag === "table") {
+        var headerCells = [];
+        node.querySelectorAll("thead th").forEach(function (th) { headerCells.push(inlineOnly(th)); });
+        var rows = [];
+        node.querySelectorAll("tbody tr").forEach(function (tr) {
+          var cells = [];
+          tr.querySelectorAll("td").forEach(function (td) { cells.push(inlineOnly(td)); });
+          rows.push(cells);
+        });
+        var tlines = [];
+        tlines.push("| " + headerCells.join(" | ") + " |");
+        tlines.push("| " + headerCells.map(function () { return "---"; }).join(" | ") + " |");
+        rows.forEach(function (r) { tlines.push("| " + r.join(" | ") + " |"); });
+        out.push(tlines.join("\n"));
+      } else if (tag === "p" || tag === "div") {
+        out.push(inlineOnly(node));
+      }
+    });
+    return out.join("\n\n");
+  }
+
+  // ---- toolbar icons (identical to the real app) ----
+  var ICONS = {
+    bold: '<svg aria-hidden="true" viewBox="0 0 16 16" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5.25 3.25L5.25 12.75"/><path d="M5.25 3.25H8.75A2.375 2.375 0 0 1 8.75 8H5.25"/><path d="M5.25 8H9.25A2.375 2.375 0 0 1 9.25 12.75H5.25"/></svg>',
+    italic: '<svg aria-hidden="true" viewBox="0 0 16 16" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 12.75L9.5 3.25"/><path d="M8 3.25L12.25 3.25"/><path d="M3.75 12.75L8 12.75"/></svg>',
+    strike: '<svg aria-hidden="true" viewBox="0 0 16 16" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11.75 5.1A2.9 2.9 0 0 0 8.9 3.1H7.3A2.4 2.4 0 0 0 5.7 7.3"/><path d="M2.5 8L13.5 8"/><path d="M4.9 10.9A2.9 2.9 0 0 0 7.75 12.9H8.6A2.4 2.4 0 0 0 10.6 9.6"/></svg>',
+    code: '<svg aria-hidden="true" viewBox="0 0 16 16" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5.75 4.75L2.5 8L5.75 11.25"/><path d="M10.25 4.75L13.5 8L10.25 11.25"/></svg>',
+    ul: '<svg aria-hidden="true" viewBox="0 0 16 16" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="3" cy="4.25" r="1.15" fill="currentColor" stroke="none"/><circle cx="3" cy="8" r="1.15" fill="currentColor" stroke="none"/><circle cx="3" cy="11.75" r="1.15" fill="currentColor" stroke="none"/><path d="M6.5 4.25L13.5 4.25"/><path d="M6.5 8L13.5 8"/><path d="M6.5 11.75L13.5 11.75"/></svg>',
+    ol: '<svg aria-hidden="true" viewBox="0 0 16 16" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.9 3L2.7 2.5" stroke-width="1.15"/><path d="M2.7 2.5L2.7 4.9" stroke-width="1.15"/><path d="M1.85 4.9L3.6 4.9" stroke-width="1.15"/><path d="M1.8 7.0A1.15 1.15 0 0 1 3.95 7.6C3.95 8.5 1.8 9.0 1.8 9.4H4.05" stroke-width="1.15"/><path d="M1.85 11.4A1.1 1.1 0 1 1 2.8 12.95H2.5" stroke-width="1.15"/><path d="M2.5 12.95H2.8A1.1 1.1 0 1 1 1.85 14.5" stroke-width="1.15"/><path d="M6.5 3.7L13.75 3.7"/><path d="M6.5 8.1L13.75 8.1"/><path d="M6.5 12.5L13.75 12.5"/></svg>',
+    checklist: '<svg aria-hidden="true" viewBox="0 0 16 16" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.9" y="2.75" width="4.3" height="4.3" rx="1.3"/><path d="M3.1 4.95L3.9 5.75L5.1 4.25" stroke-width="1.15"/><rect x="1.9" y="8.95" width="4.3" height="4.3" rx="1.3"/><path d="M3.1 11.15L3.9 11.95L5.1 10.45" stroke-width="1.15"/><path d="M8.4 4.9L14 4.9"/><path d="M8.4 11.1L14 11.1"/></svg>',
+    indent: '<svg aria-hidden="true" viewBox="0 0 16 16" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 3.25L13.5 3.25"/><path d="M6.75 6.4L13.5 6.4"/><path d="M6.75 9.6L13.5 9.6"/><path d="M2.5 12.75L13.5 12.75"/><path d="M2.5 6.4L4.5 8L2.5 9.6"/></svg>',
+    outdent: '<svg aria-hidden="true" viewBox="0 0 16 16" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 3.25L13.5 3.25"/><path d="M6.75 6.4L13.5 6.4"/><path d="M6.75 9.6L13.5 9.6"/><path d="M2.5 12.75L13.5 12.75"/><path d="M4.5 6.4L2.5 8L4.5 9.6"/></svg>',
+    quote: '<svg aria-hidden="true" viewBox="0 0 16 16" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.1 3.75L3.1 12.25"/><path d="M6.75 5.25L13.25 5.25"/><path d="M6.75 8L13.25 8"/><path d="M6.75 10.75L13.25 10.75"/></svg>',
+    codeblock: '<svg aria-hidden="true" viewBox="0 0 16 16" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.75" y="3.25" width="12.5" height="9.5" rx="2"/><path d="M6.1 6.6L4.5 8L6.1 9.4"/><path d="M9.9 6.6L11.5 8L9.9 9.4"/></svg>',
+    hr: '<svg aria-hidden="true" viewBox="0 0 16 16" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 3.9L11 3.9" opacity=".35"/><path d="M2 8L14 8"/><path d="M2.5 12.1L9.5 12.1" opacity=".35"/></svg>',
+    footnote: '<svg aria-hidden="true" viewBox="0 0 16 16" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 5.6L10.4 5.6"/><circle cx="12.4" cy="4.3" r="1.05" fill="currentColor" stroke="none"/><path d="M2.5 9L13.5 9"/><path d="M2.5 12.2L9.75 12.2"/></svg>',
+    link: '<svg aria-hidden="true" viewBox="0 0 16 16" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.9 9.1A2.75 2.75 0 0 0 10.8 9.1L13.1 6.8A2.75 2.75 0 0 0 9.2 2.9L8.1 4"/><path d="M9.1 6.9A2.75 2.75 0 0 0 5.2 6.9L2.9 9.2A2.75 2.75 0 0 0 6.8 13.1L7.9 12"/></svg>',
+    image: '<svg aria-hidden="true" viewBox="0 0 16 16" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.75" y="2.75" width="12.5" height="10.5" rx="2"/><path d="M1.75 11L5.5 7.5L9.5 11.25M8 9.75L10 8L14.25 11.5"/><circle cx="10.5" cy="5.75" r="1.1"/></svg>',
+    upload: '<svg aria-hidden="true" viewBox="0 0 16 16" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 10.75V2.75"/><path d="M5.25 5.5L8 2.75L10.75 5.5"/><path d="M2.75 10.75V12.5A1.5 1.5 0 0 0 4.25 14H11.75A1.5 1.5 0 0 0 13.25 12.5V10.75"/></svg>',
+    attach: '<svg aria-hidden="true" viewBox="0 0 16 16" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7.5L7.25 12.25A3 3 0 0 1 3 8L8.5 2.5A2 2 0 0 1 11.25 5.25L5.9 10.6A1 1 0 0 1 4.5 9.2L9.5 4.25"/></svg>',
+    table: '<svg aria-hidden="true" viewBox="0 0 16 16" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.75" y="3.25" width="12.5" height="9.5" rx="2"/><path d="M1.75 6.4L14.25 6.4"/><path d="M6 3.25L6 12.75"/><path d="M10 3.25L10 12.75"/></svg>',
+  };
+  var LABELS = {
+    bold: "Bold", italic: "Italic", strike: "Strikethrough", code: "Inline code",
+    ul: "Bullet list", ol: "Numbered list", checklist: "Checkbox list",
+    indent: "Indent", outdent: "Outdent",
+    quote: "Blockquote", codeblock: "Code block", hr: "Horizontal rule", footnote: "Footnote",
+    link: "Link", image: "Image by URL", upload: "Upload image", attach: "Attach file", table: "Insert table"
+  };
+  var GROUPS = [
+    ["bold", "italic", "strike", "code"],
+    ["ul", "ol", "checklist", "outdent", "indent"],
+    ["quote", "codeblock", "hr", "footnote"],
+    ["link", "image", "upload", "attach", "table"]
+  ];
+
+  function buildFormatBar() {
+    var bar = el("demo-formatbar");
+    bar.innerHTML = "";
+
+    var headingSelect = document.createElement("select");
+    headingSelect.id = "demo-heading-select";
+    headingSelect.setAttribute("aria-label", "Text style");
+    ["Text style", "Paragraph", "Heading 1", "Heading 2", "Heading 3", "Heading 4", "Heading 5", "Heading 6"].forEach(function (label, i) {
+      var opt = document.createElement("option");
+      opt.value = i === 0 ? "" : (i === 1 ? "P" : "H" + (i - 1));
+      opt.textContent = label;
+      if (i === 0) { opt.disabled = true; opt.selected = true; }
+      headingSelect.appendChild(opt);
+    });
+    bar.appendChild(headingSelect);
+
+    var sep0 = document.createElement("span");
+    sep0.className = "sep";
+    bar.appendChild(sep0);
+
+    GROUPS.forEach(function (group) {
+      group.forEach(function (cmd) {
+        var btn = document.createElement("button");
+        btn.dataset.cmd = cmd;
+        btn.setAttribute("aria-label", LABELS[cmd]);
+        btn.innerHTML = ICONS[cmd];
+        bar.appendChild(btn);
+      });
+      var sep = document.createElement("span");
+      sep.className = "sep";
+      bar.appendChild(sep);
+    });
+
+    var alertSelect = document.createElement("select");
+    alertSelect.id = "demo-alert-select";
+    alertSelect.setAttribute("aria-label", "Callout");
+    ["Callout", "Note", "Tip", "Important", "Warning", "Caution"].forEach(function (label, i) {
+      var opt = document.createElement("option");
+      opt.value = i === 0 ? "" : label.toUpperCase();
+      opt.textContent = label;
+      if (i === 0) { opt.disabled = true; opt.selected = true; }
+      alertSelect.appendChild(opt);
+    });
+    bar.appendChild(alertSelect);
+  }
+  buildFormatBar();
+
+  // Wraps the current selection in `tagName`. If nothing is selected,
+  // inserts an empty element (a zero-width space, invisible) with the
+  // cursor placed inside it, so typing continues in that format —
+  // rather than inserting visible placeholder text the person then has
+  // to notice, select, and delete.
+  function wrapSelectionInline(tagName) {
+    var s = window.getSelection();
+    if (!s.rangeCount) return;
+    var r = s.getRangeAt(0);
+    var elNode = document.createElement(tagName);
+    if (r.collapsed) {
+      elNode.appendChild(document.createTextNode("\u200B"));
+      r.insertNode(elNode);
+      var nr = document.createRange();
+      nr.setStart(elNode.firstChild, 1);
+      nr.collapse(true);
+      s.removeAllRanges();
+      s.addRange(nr);
+    } else {
+      var contents = r.extractContents();
+      elNode.appendChild(contents);
+      r.insertNode(elNode);
+      var nr2 = document.createRange();
+      nr2.setStartAfter(elNode);
+      nr2.collapse(true);
+      s.removeAllRanges();
+      s.addRange(nr2);
+    }
+  }
+
+  // Same idea for a checklist item: no placeholder "task" text, cursor
+  // lands inside the label ready to type.
+  function insertChecklistItem(labelText) {
+    var s = window.getSelection();
+    if (!s.rangeCount) return;
+    var r = s.getRangeAt(0);
+    var ul = document.createElement("ul");
+    ul.className = "task-list";
+    var li = document.createElement("li");
+    var label = document.createElement("label");
+    var cb = document.createElement("input");
+    cb.type = "checkbox";
+    label.appendChild(cb);
+    var textNode = document.createTextNode(" " + (labelText || ""));
+    label.appendChild(textNode);
+    li.appendChild(label);
+    ul.appendChild(li);
+    r.deleteContents();
+    r.insertNode(ul);
+    var nr = document.createRange();
+    nr.setStart(textNode, textNode.textContent.length);
+    nr.collapse(true);
+    s.removeAllRanges();
+    s.addRange(nr);
+  }
+
+  function nextFootnoteNumber() {
+    var md = currentMarkdown();
+    var max = 0;
+    var re = /\[\^(\d+)\]/g;
+    var m;
+    while ((m = re.exec(md))) max = Math.max(max, parseInt(m[1], 10));
+    return max + 1;
+  }
+
+  var editor = el("demo-editor");
+  var raw = el("demo-raw");
+  var btnWrite = el("demo-mode-write");
+  var btnRaw = el("demo-mode-raw");
+  var titleEl = el("demo-title");
+  var listEl = el("demo-note-list");
+  var searchEl = el("demo-search");
+  var saveEl = el("demo-save");
+  var saveTimer = null;
+
+  // Mirrors the real app: a save glows the editor's edge for a moment
+  // and says nothing. (Nothing actually uploads anywhere; the demo is
+  // fully client-side.)
+  function touchSave() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function () {
+      var pane = document.querySelector(".demo-main");
+      if (!pane) return;
+      pane.classList.remove("just-saved");
+      void pane.offsetWidth;
+      pane.classList.add("just-saved");
+    }, 600);
+  }
+
+  function currentMarkdown() {
+    if (mode === "write") return htmlToMd(editor);
+    return raw.value;
+  }
+
+  function renderList() {
+    listEl.innerHTML = "";
+    var q = searchEl.value.trim().toLowerCase();
+    order.forEach(function (title) {
+      if (q && title.toLowerCase().indexOf(q) === -1) return;
+      var li = document.createElement("li");
+      li.textContent = title;
+      if (title === current) li.className = "active";
+      li.addEventListener("click", function () { openNote(title); });
+      listEl.appendChild(li);
+    });
+  }
+
+  function openNote(title) {
+    if (!notes.hasOwnProperty(title)) return;
+    current = title;
+    titleEl.value = title;
+    clearTimeout(saveTimer);
+    saveEl.textContent = "saved";
+    if (mode === "write") editor.innerHTML = mdToHtml(notes[title]);
+    else raw.value = notes[title];
+    renderList();
+  }
+
+  editor.addEventListener("input", function () { notes[current] = htmlToMd(editor); touchSave(); });
+  raw.addEventListener("input", function () { notes[current] = raw.value; touchSave(); });
+  titleEl.addEventListener("input", touchSave);
+
+  document.getElementById("demo-formatbar").addEventListener("click", function (e) {
+    var btn = e.target.closest("button");
+    if (!btn) return;
+    var cmd = btn.dataset.cmd;
+    editor.focus();
+    var sel = window.getSelection();
+    var selectedText = sel && sel.toString();
+
+    if (cmd === "bold") document.execCommand("bold");
+    else if (cmd === "italic") document.execCommand("italic");
+    else if (cmd === "strike") document.execCommand("strikeThrough");
+    else if (cmd === "quote") document.execCommand("formatBlock", false, "BLOCKQUOTE");
+    else if (cmd === "codeblock") document.execCommand("formatBlock", false, "PRE");
+    else if (cmd === "ul") document.execCommand("insertUnorderedList");
+    else if (cmd === "ol") document.execCommand("insertOrderedList");
+    else if (cmd === "indent") document.execCommand("indent");
+    else if (cmd === "outdent") document.execCommand("outdent");
+    else if (cmd === "hr") document.execCommand("insertHorizontalRule");
+    else if (cmd === "footnote") {
+      var n = nextFootnoteNumber();
+      document.execCommand("insertHTML", false, '<sup class="footnote-ref" data-fn="' + n + '">' + n + "</sup>");
+      var fnP = document.createElement("p");
+      fnP.textContent = "[^" + n + "]: ";
+      editor.appendChild(fnP);
+    } else if (cmd === "checklist") {
+      editor.focus();
+      insertChecklistItem(selectedText);
+    } else if (cmd === "code") {
+      editor.focus();
+      wrapSelectionInline("code");
+    } else if (cmd === "link") {
+      var url = prompt("Link URL:", "https://");
+      if (!url) return;
+      if (!selectedText) document.execCommand("insertHTML", false, '<a href="' + url + '">' + escapeHtml(url) + "</a>");
+      else document.execCommand("createLink", false, url);
+    } else if (cmd === "image" || cmd === "upload") {
+      var imgUrl = prompt("Image URL (this demo doesn't upload real files):", "https://");
+      if (!imgUrl) return;
+      document.execCommand("insertHTML", false, '<img src="' + imgUrl + '" alt="">');
+    } else if (cmd === "attach") {
+      var name = prompt("File name for the attachment link:", "document.pdf");
+      if (!name) return;
+      document.execCommand("insertHTML", false, '<a href="#">' + escapeHtml(name) + "</a>");
+    } else if (cmd === "table") {
+      var cols = parseInt(prompt("How many columns?", "2"), 10) || 2;
+      var rowsN = parseInt(prompt("How many rows (not counting header)?", "2"), 10) || 2;
+      var t = "<table><thead><tr>";
+      for (var c = 0; c < cols; c++) t += "<th>Header " + (c + 1) + "</th>";
+      t += "</tr></thead><tbody>";
+      for (var r = 0; r < rowsN; r++) {
+        t += "<tr>";
+        for (var c2 = 0; c2 < cols; c2++) t += "<td>&nbsp;</td>";
+        t += "</tr>";
+      }
+      t += "</tbody></table><p></p>";
+      document.execCommand("insertHTML", false, t);
+    }
+    notes[current] = htmlToMd(editor);
+    touchSave();
+  });
+
+  el("demo-heading-select").addEventListener("change", function (e) {
+    var val = e.target.value;
+    editor.focus();
+    document.execCommand("formatBlock", false, val);
+    e.target.selectedIndex = 0;
+    notes[current] = htmlToMd(editor);
+    touchSave();
+  });
+
+  el("demo-alert-select").addEventListener("change", function (e) {
+    var type = e.target.value;
+    editor.focus();
+    document.execCommand("insertHTML", false,
+      '<div class="md-alert md-alert-' + type.toLowerCase() + '"><p class="md-alert-title">' +
+      type.charAt(0) + type.slice(1).toLowerCase() + "</p><p>Add a note here.</p></div><p></p>");
+    e.target.selectedIndex = 0;
+    notes[current] = htmlToMd(editor);
+    touchSave();
+  });
+
+  el("demo-undo").addEventListener("click", function () {
+    if (mode === "raw") { raw.focus(); document.execCommand("undo"); }
+    else { editor.focus(); document.execCommand("undo"); }
+  });
+  el("demo-redo").addEventListener("click", function () {
+    if (mode === "raw") { raw.focus(); document.execCommand("redo"); }
+    else { editor.focus(); document.execCommand("redo"); }
+  });
+
+  var DEMO_DELETE_ICON = el("demo-delete").innerHTML;
+  var deleteConfirming = false;
+  var deleteConfirmTimeout = null;
+
+  function resetDemoDeleteButton() {
+    deleteConfirming = false;
+    clearTimeout(deleteConfirmTimeout);
+    el("demo-delete").innerHTML = DEMO_DELETE_ICON;
+    el("demo-delete").classList.remove("confirming");
+  }
+
+  document.addEventListener("click", function (e) {
+    if (deleteConfirming && !el("demo-delete").contains(e.target)) resetDemoDeleteButton();
+  });
+
+  el("demo-delete").addEventListener("click", function (e) {
+    if (!deleteConfirming) {
+      e.stopPropagation();
+      deleteConfirming = true;
+      el("demo-delete").textContent = "Confirm";
+      el("demo-delete").classList.add("confirming");
+      clearTimeout(deleteConfirmTimeout);
+      deleteConfirmTimeout = setTimeout(resetDemoDeleteButton, 4000);
+      return;
+    }
+    resetDemoDeleteButton();
+    delete notes[current];
+    order = order.filter(function (t) { return t !== current; });
+    if (order.length) {
+      openNote(order[0]);
+    } else {
+      titleEl.value = "No notes left";
+      editor.innerHTML = "<p><em>All demo notes deleted — reload the page to reset the demo.</em></p>";
+      raw.value = "";
+      renderList();
+    }
+    touchSave();
+  });
+
+  el("demo-newbtn").addEventListener("click", function () {
+    var title = "Untitled";
+    var n = 1;
+    while (order.indexOf(title) !== -1) { n++; title = "Untitled " + n; }
+    notes[title] = "";
+    order.unshift(title);
+    openNote(title);
+    titleEl.focus();
+    titleEl.select();
+  });
+
+  btnWrite.addEventListener("click", function () {
+    if (mode === "write") return;
+    mode = "write";
+    btnWrite.classList.add("active");
+    btnRaw.classList.remove("active");
+    editor.style.display = "block";
+    raw.style.display = "none";
+    document.getElementById("demo-formatbar").style.display = "flex";
+    editor.innerHTML = mdToHtml(notes[current] || "");
+  });
+
+  btnRaw.addEventListener("click", function () {
+    if (mode === "raw") return;
+    mode = "raw";
+    btnRaw.classList.add("active");
+    btnWrite.classList.remove("active");
+    editor.style.display = "none";
+    raw.style.display = "block";
+    document.getElementById("demo-formatbar").style.display = "none";
+    raw.value = notes[current] || "";
+  });
+
+  // Chrome: the drawer collapses from the app-bar menu button,
+  // and the brand mark (embedded once, in the menu bar) is reused for
+  // the drawer and app-bar logos.
+  var heroLogo = document.getElementById("brand-logo");
+  el("demo-brand-logo").src = heroLogo.src;
+  el("demo-appbar-logo").src = heroLogo.src;
+  el("demo-menu").addEventListener("click", function () {
+    el("demo-sidebar").classList.toggle("collapsed");
+  });
+  searchEl.addEventListener("input", function () { renderList(); });
+
+  renderList();
+  editor.innerHTML = mdToHtml(notes[current]);
+})();
+</script>
+
+<script>
+// Labels on pointing for the demo's controls: in after 400ms, out after
+// 1.5 seconds whether or not the pointer is still there. The full name
+// stays in aria-label, so a screen reader loses nothing.
+(function () {
+  var demo = document.getElementById("demo");
+  if (!demo) return;
+  var node = null, inTimer = null, outTimer = null;
+
+  function hide() {
+    clearTimeout(inTimer); clearTimeout(outTimer);
+    if (node) { node.remove(); node = null; }
+  }
+
+  function show(btn) {
+    var text = btn.getAttribute("aria-label") || btn.dataset.label;
+    if (!text) return;
+    hide();
+    node = document.createElement("span");
+    node.className = "hover-label";
+    node.textContent = text;
+    document.body.appendChild(node);
+    var b = btn.getBoundingClientRect(), l = node.getBoundingClientRect();
+    var x = b.left + b.width / 2 - l.width / 2;
+    x = Math.max(6, Math.min(x, window.innerWidth - l.width - 6));
+    var y = b.bottom + 6;
+    if (y + l.height > window.innerHeight - 6) y = b.top - l.height - 6;
+    node.style.left = x + "px";
+    node.style.top = y + "px";
+    outTimer = setTimeout(hide, 1500);
+  }
+
+  demo.addEventListener("mouseover", function (e) {
+    var btn = e.target.closest("[aria-label], [data-label]");
+    if (!btn || !demo.contains(btn)) return;
+    if (!btn.matches("button, a, select, input, [role=button]")) return;
+    clearTimeout(inTimer);
+    inTimer = setTimeout(function () { show(btn); }, 400);
+  });
+  demo.addEventListener("mouseout", function (e) {
+    if (e.target.closest("[aria-label], [data-label]")) hide();
+  });
+  demo.addEventListener("mousedown", hide);
+  window.addEventListener("scroll", hide, true);
+  window.addEventListener("blur", hide);
+})();
+</script>
+
+<script src="https://apps.lightmorphic.com/launcher.js" defer></script>
+</body>
+</html>
