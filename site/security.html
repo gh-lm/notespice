@@ -73,27 +73,31 @@
 <h1>Security</h1>
 <p class="updated">How to report a security problem, and what happens next.</p>
 
-<p>Notespice is a personal, single-maintainer project, not a company or a team with a dedicated security function. This document sets realistic expectations rather than promising something that isn't true.</p>
+<p>Notespice is a single-maintainer project, not a company or a team with a dedicated security function. This page sets realistic expectations rather than promising something that is not true.</p>
 <h2 id="supported-versions">Supported versions</h2>
-<p>Only the latest release (the <code>latest</code> tag / most recent tagged commit) is supported. There's no long-term-support branch and no backporting of fixes to older versions: if a vulnerability is found, the fix lands in the next build, and you're expected to update to it.</p>
+<p>Only the latest release is supported, which is the <code>latest</code> tag and the most recent tagged commit. There is no long-term-support branch and no backporting to older versions. If a vulnerability is found, the fix lands in the next build and you are expected to update to it.</p>
+<div class="table-wrap"><table><thead><tr><th>Version</th><th>Supported</th></tr></thead><tbody>
+<tr><td>1.0.0</td><td>yes</td></tr>
+<tr><td>1.8.x and earlier</td><td>no</td></tr>
+</tbody></table></div>
 <h2 id="reporting-a-vulnerability">Reporting a vulnerability</h2>
-<p><strong>Please don't put the details of a security vulnerability in a public bug report.</strong> A public report discloses the problem to everyone, including anyone running an unpatched copy, before a fix exists.</p>
-<p>Write to <a href="mailto:complaints@lightmorphic.com">complaints@lightmorphic.com</a> with "Notespice security" in the subject line and say only that you have a security issue to report. Leave the details out of that first message. The maintainer will reply and arrange a private channel for the rest.</p>
-<p>There is no public bug tracker for this project, so there is nothing you could post publicly by accident.</p>
+<p><strong>Please do not put the details of a security vulnerability in a public issue.</strong> A public report discloses the problem to everyone, including anyone running an unpatched copy, before a fix exists.</p>
+<p>Use GitHub's private vulnerability reporting on this repository, under <strong>Security</strong>, then <strong>Report a vulnerability</strong>. It goes straight to the maintainer and nobody else can see it.</p>
+<p>If you would rather not use GitHub, write to <a href="mailto:complaints@lightmorphic.com">complaints@lightmorphic.com</a> with "Notespice security" in the subject line and say only that you have a security issue to report. Leave the details out of that first message, and a private channel will be arranged for the rest.</p>
 <h2 id="what-to-expect">What to expect</h2>
-<p>This is maintained in whatever time is available outside other commitments, not on an SLA. Best-effort, not guaranteed:</p>
+<p>This is maintained in whatever time is available outside other commitments, not against a service level agreement. Best effort, not guaranteed:</p>
 <ul>
-<li>Acknowledgement of a report: aim for a few days</li>
-<li>A fix or mitigation: depends entirely on severity and complexity. Could be same-day for something simple and serious, could be longer for something subtle</li>
+<li>Acknowledgement of a report: a few days is the aim</li>
+<li>A fix or a mitigation: depends on severity and complexity. It could be same-day for something simple and serious, or longer for something subtle</li>
 </ul>
 <h2 id="scope">Scope</h2>
-<p>This policy covers the Notespice application code itself: the Rust backend, the frontend and the Dockerfile. It does not cover:</p>
+<p>This policy covers the Notespice application itself: the Rust backend, the frontend and the Dockerfile. It does not cover:</p>
 <ul>
-<li>Vulnerabilities in dependencies themselves (report those upstream, to the dependency's own maintainers or via <a href="https://rustsec.org/" target="_blank" rel="noopener noreferrer" aria-label="RustSec (opens in a new tab)">RustSec</a>)</li>
-<li>Your own deployment environment (reverse proxy config, TLS setup, network exposure, host OS); those are outside this project's control</li>
+<li>Vulnerabilities in dependencies. Report those upstream, to the dependency's own maintainers or through <a href="https://rustsec.org/" target="_blank" rel="noopener noreferrer" aria-label="RustSec (opens in a new tab)">RustSec</a></li>
+<li>Your own deployment: reverse proxy configuration, TLS setup, network exposure and host OS are outside this project's control</li>
 </ul>
-<h2 id="what-s-already-in-place">What's already in place</h2>
-<p>For context on the existing security posture (so a report can focus on what's actually new), see the <strong>Security notes</strong> section in <a href="/docs">README.md</a>, which is also on the website at <a href="https://notespice.org/docs">https://notespice.org/docs</a>. Briefly: Argon2id password hashing, server-side session tokens, per-IP login rate limiting, allow-list filename sanitisation against path traversal, a non-root container user, OS packages patched at every build, and a capped request body size.</p>
+<h2 id="what-is-already-in-place">What is already in place</h2>
+<p>So a report can focus on what is genuinely new, the <a href="./README.md#security">Security section of the README</a> lists what is already built in: Argon2id password hashing, server-side session tokens, per-IP login rate limiting, allow-list filename sanitisation against path traversal, a non-root container user, OS packages patched at every build, and capped request and import sizes.</p>
 </div></main>
 <footer>
   <!-- Three blocks across the width, the same as Dockup and Nextup: the
@@ -119,7 +123,7 @@
     </div>
     <nav class="footer-nav foot-mid" aria-label="The project">
       <h2>The project</h2>
-      <a href="https://hub.docker.com/r/lightmorphic/notespice" target="_blank" rel="noopener noreferrer" aria-label="Docker Hub (opens in a new tab)">Docker Hub</a>
+      <a href="https://github.com/gh-lm/notespice" target="_blank" rel="noopener noreferrer" aria-label="The code on GitHub (opens in a new tab)">GitHub</a>
       <a href="/source">Source</a>
       <a href="/changelog">Changelog</a>
       <a href="/security">Security</a>

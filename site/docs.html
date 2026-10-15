@@ -73,65 +73,13 @@
 <h1>Documentation</h1>
 <p class="updated">Everything about running Notespice, from first start to every setting.</p>
 
-<p>A self-hosted, database-less notes app. Every note is a plain markdown file on disk (no database, ever) with a Rust backend, a markdown toolbar covering the parts of GitHub Flavored Markdown most people use, and an installable PWA frontend.</p>
-<p>See <a href="/changelog">CHANGELOG.md</a> for version history.</p>
-<h2 id="features">Features</h2>
-<ul>
-<li>Clean, minimal interface with a markdown toolbar: headings, lists, tables, footnotes, GitHub-style callouts, the parts most people use (see <a href="#markdown-support">Markdown support</a>)</li>
-<li>WYSIWYG editor with a one-click raw-markdown toggle. The converter behind it is small and hand-written, not a third-party library loaded from a CDN, so there's nothing external to version-mismatch or break</li>
-<li>No database: every note is just a <code>.md</code> file you can open, edit, or move with any other tool, even while the app is running</li>
-<li>Images, uploads, and file attachments, stored alongside your notes and referenced by plain markdown links</li>
-<li>Full-text search, plus instant name-filtering as you type</li>
-<li>Sidebar shows your last 10 <em>viewed</em> notes first, not just last-edited</li>
-<li>Undo/redo</li>
-<li>Export a single note as Markdown or PDF, or everything as one dated zip; import that same zip (or a loose <code>.md</code> file) back in, never overwriting on a title collision</li>
-<li>Installable PWA that works offline for the app shell, with "Add to Home Screen" on mobile or desktop</li>
-<li>Dark throughout, with no theme setting to configure</li>
-<li>Argon2id password hashing, per-IP login rate limiting, and a handful of other deliberate security choices (see <a href="#security-notes">Security notes</a>)</li>
-<li>Self-hosted Trindle Sans typeface, under the SIL Open Font Licence: no font CDN, no external font request of any kind</li>
-</ul>
-<h2 id="storage">Storage</h2>
-<p>Notespice stores notes as individual markdown files in one directory. No database, no proprietary format: the filename <em>is</em> the note title, and attachments live in a <code>files/</code> subfolder right alongside. That's the entire data model. <code>ls</code> the directory, open a note in any text editor, back it up with <code>rsync</code>, or stop using this app entirely; nothing is ever locked away in a format only Notespice understands.</p>
-<p>See <a href="#data-model">Data model</a> below for the full detail, including how search, recently-viewed tracking, and attachments all fit into that same single directory.</p>
-<h2 id="quick-start">Quick Start</h2>
-<h3 id="running-locally-without-docker">Running locally without Docker</h3>
-<p>Requires a reasonably current stable Rust toolchain. Install via <a href="https://rustup.rs" target="_blank" rel="noopener noreferrer" aria-label="rustup (opens in a new tab)">rustup</a> if your OS package manager's version is old.</p>
-<pre><code>curl -L -o notespice.tar.gz https://notespice.org/notespice-source.tar.gz
-tar xzf notespice.tar.gz
-cd notespice
-cargo build --release
-NOTES_PASSWORD=changeMe123 NOTES_DIR=./notes NOTES_DATA_DIR=./appdata ./target/release/notespice</code></pre>
-<p>Open <code>http://localhost:8080</code>. Notes are written to <code>./notes</code>, as <code>.md</code> files, with attachments under <code>./notes/files</code>. App-only state (the recently-viewed list) lives separately under <code>./appdata</code>.</p>
-<blockquote><p>Note: service workers require HTTPS (<code>localhost</code> is exempt for testing), so offline support and "Add to Home Screen" will only work once this is served over TLS on a real domain.</p></blockquote>
-<h3 id="using-docker">Using Docker</h3>
-<ol>
-<li>Pull from Docker Hub (see <a href="#image-publishing">Image publishing</a>)</li>
-</ol>
-<pre><code>docker pull lightmorphic/notespice:latest
-sudo mkdir -p /opt/media/notes /opt/notespice
-sudo chown -R 1000:1000 /opt/media/notes /opt/notespice
-docker run -p 8080:8080 \
-  -e NOTES_PASSWORD=changeMe123 \
-  -v /opt/media/notes:/notes \
-  -v /opt/notespice:/data \
-  lightmorphic/notespice:latest</code></pre>
-<ol start="2">
-<li>Or build locally</li>
-</ol>
-<pre><code>docker build -t notespice .
-sudo mkdir -p /opt/media/notes /opt/notespice
-sudo chown -R 1000:1000 /opt/media/notes /opt/notespice
-docker run -p 8080:8080 \
-  -e NOTES_PASSWORD=changeMe123 \
-  -v /opt/media/notes:/notes \
-  -v /opt/notespice:/data \
-  notespice</code></pre>
-<ol start="3">
-<li>Docker Compose</li>
-</ol>
+<p>Notespice is a self-hosted notes app with no database. Every note is a plain markdown file in a folder you choose, so you can read, edit, move or back up your notes with any other tool, and walk away from this app whenever you like without leaving anything behind.</p>
+<p>It is one small container, a Rust backend, and a frontend with no build step and nothing loaded from a CDN.</p>
+<h2 id="how-it-works">How it works</h2>
+<h2 id="quick-start">Quick start</h2>
 <pre><code>services:
   notespice:
-    image: lightmorphic/notespice:latest
+    image: ghcr.io/gh-lm/notespice:latest
     container_name: notespice
     restart: unless-stopped
     environment:
@@ -145,102 +93,109 @@ docker run -p 8080:8080 \
 <pre><code>sudo mkdir -p /opt/media/notes /opt/notespice
 sudo chown -R 1000:1000 /opt/media/notes /opt/notespice
 docker compose up -d</code></pre>
-<blockquote><p><strong>Note:</strong> the container runs as a non-root user (UID/GID 1000), not root. After creating the data directory (or if you're upgrading an existing install), run the <code>chown</code> command above so the container can actually write to the mounted folder. Without it, Notespice will fail to create or update notes.</p></blockquote>
-<p>Open <code>http://localhost:8080</code>. Notes (<code>*.md</code>) and attachments (<code>files/</code>) end up under <code>/opt/media/notes</code>, and that's the one directory worth backing up. <code>/opt/notespice</code> holds only app-internal state (currently just the recently-viewed list used for sidebar ordering), not notes. It's safe to lose, and kept separate on purpose so it's never mixed in with your actual data. The <code>docker-compose.yml</code> itself can live wherever you keep your other compose stacks; its own location is independent of where either of these directories is.</p>
-<p>Put this behind a TLS-terminating reverse proxy (nginx, Caddy, Traefik, or Tailscale Serve) for anything beyond local testing. The <code>Secure</code> cookie flag (on by default) requires the browser to have reached it over HTTPS, and PWA installability requires it too.</p>
-<p>After updating the image:</p>
+<p>Open <code>http://localhost:8080</code>.</p>
+<p>The container runs as a non-root user (UID and GID 1000), not root, so the <code>chown</code> above matters: without it Notespice cannot write to the mounted folder and will fail to create or update notes. Run it when you first create the directories, and again if you are moving an existing install across.</p>
+<p>Notes (<code>*.md</code>) and attachments (<code>files/</code>) end up under <code>/opt/media/notes</code>, and that is the one directory worth backing up. <code>/opt/notespice</code> holds app-only state, currently just the recently-viewed and pinned lists. It is safe to lose, and kept separate on purpose so it never mixes in with your actual notes.</p>
+<p>Put this behind a TLS-terminating reverse proxy (nginx, Caddy, Traefik or Tailscale Serve) for anything beyond local testing. The <code>Secure</code> cookie flag is on by default and needs the browser to have reached the app over HTTPS, and so does installing it as a PWA.</p>
+<p>To update:</p>
 <pre><code>docker compose pull
 docker compose down
 docker compose up -d</code></pre>
-<p>(<code>docker compose up -d</code> alone does <strong>not</strong> re-pull a cached <code>:latest</code> tag.)</p>
-<h2 id="image-publishing">Image publishing</h2>
-<p>The image is built on the maintainer's own computer and published to Docker Hub as <a href="https://hub.docker.com/r/lightmorphic/notespice" target="_blank" rel="noopener noreferrer" aria-label="lightmorphic/notespice (opens in a new tab)"><code>lightmorphic/notespice</code></a> with each release.</p>
-<h2 id="environment-variables">Environment variables</h2>
-<div class="table-wrap"><table><thead><tr><th>Variable</th><th>Required</th><th>Default</th><th>Purpose</th></tr></thead><tbody>
+<p><code>docker compose up -d</code> on its own will not re-pull a cached <code>:latest</code>.</p>
+<h3 id="without-docker">Without Docker</h3>
+<p>You need a reasonably current stable Rust toolchain. Install one from <a href="https://rustup.rs" target="_blank" rel="noopener noreferrer" aria-label="rustup (opens in a new tab)">rustup</a> if your package manager's version is old.</p>
+<pre><code>git clone https://github.com/gh-lm/notespice.git
+cd notespice
+cargo build --release
+NOTES_PASSWORD=changeMe123 NOTES_DIR=./notes NOTES_DATA_DIR=./appdata ./target/release/notespice</code></pre>
+<p>Service workers need HTTPS, with <code>localhost</code> exempt for testing, so offline support and "Add to home screen" only work once this is served over TLS on a real domain.</p>
+<h2 id="writing-in-it">Writing in it</h2>
+<p>The editor shows your note laid out, and one click shows the markdown underneath it. Both are the same file: nothing is translated into a private format on the way to disk.</p>
+<p>The converter is small and hand-written for this app. There is no third-party editor library and nothing fetched from a CDN, so there is nothing to version-mismatch or quietly break.</p>
+<h2 id="what-it-does">What it does</h2>
+<ul>
+<li>A markdown toolbar covering the parts of GitHub Flavored Markdown most people use: headings, bold, italic, strikethrough, inline code, bullet, numbered and checkbox lists with indent and outdent, blockquotes, fenced code blocks, horizontal rules, tables, links, images, attachments, footnotes, and GitHub-style callouts</li>
+<li>No database. Every note is a <code>.md</code> file you can open, edit or move with any other tool, even while the app is running</li>
+<li>Images, uploads and file attachments, stored beside your notes and referenced by ordinary markdown links</li>
+<li>Full-text search, plus instant filtering by name as you type</li>
+<li>Pinned notes first, then your last ten viewed notes, then everything else by modified date</li>
+<li>Undo and redo</li>
+<li>Export one note as markdown or PDF, or everything as one dated zip, and import that same zip back in without ever overwriting</li>
+<li>Installable as a PWA, with the app shell working offline</li>
+<li>Dark throughout, with no theme setting to fiddle with</li>
+<li>Argon2id password hashing, per-IP login rate limiting, and the other choices listed under <a href="#security">Security</a></li>
+<li>Self-hosted Trindle Sans under the SIL Open Font Licence, so no font CDN and no external font request of any kind</li>
+</ul>
+<h2 id="settings">Settings</h2>
+<div class="table-wrap"><table><thead><tr><th>Variable</th><th>Required</th><th>Default</th><th>What it does</th></tr></thead><tbody>
 <tr><td><code>NOTES_USERNAME</code></td><td>no</td><td><code>admin</code></td><td>Login username</td></tr>
-<tr><td><code>NOTES_PASSWORD</code></td><td><strong>yes</strong></td><td>(none)</td><td>Login password (min. 8 characters). Hashed with Argon2id in memory at startup; never stored or logged in plaintext.</td></tr>
-<tr><td><code>NOTES_DIR</code></td><td>no</td><td><code>/notes</code></td><td>Where <code>.md</code> files and their <code>files/</code> attachments live. This is the actual vault.</td></tr>
-<tr><td><code>NOTES_DATA_DIR</code></td><td>no</td><td><code>/data</code></td><td>Where app-only state lives (currently just the recently-viewed list). Not notes.</td></tr>
+<tr><td><code>NOTES_PASSWORD</code></td><td><strong>yes</strong></td><td>none</td><td>Login password, at least 8 characters. Hashed with Argon2id in memory at startup, never stored or logged in plaintext.</td></tr>
+<tr><td><code>NOTES_DIR</code></td><td>no</td><td><code>/notes</code></td><td>Where <code>.md</code> files and their <code>files/</code> attachments live. This is the vault.</td></tr>
+<tr><td><code>NOTES_DATA_DIR</code></td><td>no</td><td><code>/data</code></td><td>Where app-only state lives. Not notes.</td></tr>
 <tr><td><code>NOTES_PORT</code></td><td>no</td><td><code>8080</code></td><td>Port to listen on</td></tr>
-<tr><td><code>NOTES_INSECURE_COOKIES</code></td><td>no</td><td><code>false</code></td><td>Set to <code>true</code> <strong>only</strong> for local testing over plain <code>http://</code>. Never set this in production; it removes the <code>Secure</code> flag from the session cookie.</td></tr>
+<tr><td><code>NOTES_INSECURE_COOKIES</code></td><td>no</td><td><code>false</code></td><td>Set to <code>true</code> <strong>only</strong> for local testing over plain <code>http://</code>. It removes the <code>Secure</code> flag from the session cookie, so never set it in production.</td></tr>
 </tbody></table></div>
-<h2 id="markdown-support">Markdown support</h2>
-<p>Notespice follows <a href="https://github.github.com/gfm/" target="_blank" rel="noopener noreferrer" aria-label="GitHub Flavored Markdown (opens in a new tab)">GitHub Flavored Markdown</a> for everything it does support, plus the callout syntax GitHub's own renderer adds on top of that spec. It is not a complete implementation of the spec, and is not trying to be. What the toolbar covers:</p>
+<h2 id="where-your-notes-live">Where your notes live</h2>
+<p>Every note is <code>&lt;NOTES_DIR&gt;/&lt;title&gt;.md</code>, a plain UTF-8 markdown file. The filename is the note title. Anything you insert into a note, whether an image, a PDF or any other attachment, is uploaded to <code>&lt;NOTES_DIR&gt;/files/&lt;name&gt;</code> and referenced by a relative link, so the whole vault stays one bind-mounted directory.</p>
+<p>There is no database and no hidden index that matters: the search index lives in memory and rebuilds from these files every time the app starts. You can add, edit or delete <code>.md</code> files, or drop files straight into <code>files/</code>, while the app is stopped. You can do it while it is running too, though you will need a restart to pick the change up, because the index does not watch the filesystem.</p>
+<p><code>NOTES_DATA_DIR</code> holds two small JSON files: <code>.recent.json</code>, an array of up to ten titles most-recent-first, and <code>.pinned.json</code>, an array of pinned titles. Delete either and you lose nothing but the sidebar ordering or the pins.</p>
+<p>Note titles and attachment filenames both go through the same allow-list sanitiser before touching the disk. Duplicate uploads get a <code>-2</code>, <code>-3</code> suffix rather than overwriting. Fetching an attachment needs the same session cookie as everything else, so nothing is reachable by a logged-out visitor just because it is rendered as an <code>&lt;img&gt;</code> tag. Uploads are capped at 20MB per file.</p>
+<h2 id="export-and-import">Export and import</h2>
+<p>The sidebar footer has four buttons: export this note, export everything, import, and log out.</p>
+<p><strong>Export this note</strong> downloads the open note as <strong>Markdown</strong>, which is its own file exactly as stored and built entirely in the browser, or as <strong>PDF</strong>, which goes through the browser's own print-to-PDF rather than a rendering library.</p>
+<p><strong>Export all</strong> downloads every note and attachment as one zip named <code>YYYY-MM-DD_notes.zip</code>: notes at the root as <code>.md</code> files, attachments under <code>files/</code>. An export is the same shape as an import, so it is also a valid import.</p>
+<p><strong>Import</strong> takes that same zip, or a single loose <code>.md</code> file whose filename becomes the note title. It never overwrites. A title that already exists gets a <code>(1)</code>, <code>(2)</code> suffix instead, so re-importing an export you already have adds a copy rather than silently replacing anything.</p>
+<h2 id="security">Security</h2>
+<p>Found a vulnerability? <a href="/security">SECURITY.md</a> says how to report it. What follows is about what is already built in.</p>
 <ul>
-<li>Headings (1-6), bold, italic, strikethrough, inline code</li>
-<li>Bullet, numbered, and checkbox (task) lists, with indent/outdent for nesting</li>
-<li>Blockquotes, fenced code blocks, horizontal rules</li>
-<li>Tables</li>
-<li>Links, images (by URL or upload), and generic file attachments (inserted as a link, stored under <code>files/</code>, see <a href="#data-model">Data model</a>)</li>
-<li>Footnotes (<code>[^1]</code> / <code>[^1]: ...</code>), with a collected footnotes section rendered at the bottom of the note</li>
-<li>GitHub-style callouts (<code>&gt; [!NOTE]</code>, <code>&gt; [!TIP]</code>, <code>&gt; [!IMPORTANT]</code>, <code>&gt; [!WARNING]</code>, <code>&gt; [!CAUTION]</code>) rendered with the same colored-box treatment GitHub.com uses, not just as plain blockquote text</li>
+<li>Passwords are hashed with Argon2id. Only the hash is ever held in memory, and it is never written to disk or logged.</li>
+<li>Sessions are opaque random tokens held server-side. The cookie itself carries no information, so nothing meaningful leaks if it is captured outside TLS.</li>
+<li>Login attempts are rate-limited per source IP, eight attempts per fifteen minutes, to blunt brute-force attempts.</li>
+<li>Every note title passes through an allow-list sanitiser before it touches the filesystem, closing off requests that try to climb out of the notes folder at the one place all note I/O goes through.</li>
+<li>The container runs as a non-root user and the base image's OS packages are patched at every build.</li>
+<li>Request bodies are capped at 25MB, covering the 20MB per-file attachment cap plus multipart overhead. Zip imports are additionally capped on decompressed size, 20MB per entry and 200MB per archive, so a crafted zip bomb cannot exhaust the server.</li>
 </ul>
-<p>Every file Notespice writes is plain, spec-compliant markdown. Open it on GitHub, in another editor, or in a terminal, and it reads correctly regardless of whether Notespice is involved at all. The editor is a small hand-written markdown ⇄ HTML converter built specifically for this app: no external editor library, no CDN dependency, nothing to version-mismatch or break. It only implements the GFM subset this toolbar exposes (listed above); anything outside that (raw HTML embeds, non-standard extensions) round-trips as plain text rather than being specially rendered.</p>
-<h2 id="security-notes">Security notes</h2>
-<p>Found a vulnerability? See <a href="/security">SECURITY.md</a> for how to report it. The notes below are about what's already built in, not how to disclose something new.</p>
-<ul>
-<li>Passwords are hashed with Argon2id; only the hash is ever kept in memory, and it's never written to disk or logged.</li>
-<li>Sessions are opaque random tokens held server-side. The cookie itself carries no information, so nothing meaningful leaks if it's ever captured outside of TLS.</li>
-<li>Login attempts are rate-limited per source IP (8 attempts per 15 minutes) to blunt brute-force attempts.</li>
-<li>Every note title is passed through an allow-list sanitiser before it ever touches the filesystem, closing off path traversal (requests that try to climb out of the notes folder) at the one place all note I/O goes through.</li>
-<li>The container runs as a non-root user, and the base image's OS packages are patched at every build. Builds are made by hand when there is a release, so a published image is only as current as its date: there is no scheduled rebuild picking up base-image patches between releases.</li>
-<li>Request bodies are capped at 25MB (covering the 20MB per-file attachment cap plus multipart overhead), and zip imports are additionally capped on <em>decompressed</em> size, 20MB per entry and 200MB per archive, so a crafted "zip bomb" can't exhaust the server.</li>
-</ul>
-<h2 id="export-import">Export / Import</h2>
-<p>The sidebar footer has four icon buttons: export this note, export everything, import, and log out.</p>
-<p><strong>Export this note</strong> downloads just the note that's open, in a choice of format: <strong>Markdown (.md)</strong>, the note's own file exactly as it's stored, built and downloaded entirely client-side (no server request); or <strong>PDF</strong>, which goes through the browser's own print-to-PDF rather than a rendering library - nothing loaded from anywhere else to make it work.</p>
-<p><strong>Export all</strong> downloads every note and attachment as one zip, named <code>YYYY-MM-DD_notes.zip</code>: notes at the root as <code>.md</code> files, attachments under <code>files/</code>. It's the same shape either way, so an export is also a valid import.</p>
-<p><strong>Import</strong> accepts either:</p>
-<ul>
-<li>That same <code>.zip</code> shape. Every <code>.md</code> file at its root becomes a note, everything under <code>files/</code> becomes an attachment</li>
-<li>A single loose <code>.md</code> file. Its filename (minus the extension) becomes the note title</li>
-</ul>
-<p>Import never overwrites an existing note. A title that already exists gets a <code>(1)</code>, <code>(2)</code>, etc. suffix instead: importing a note called <code>note-name</code> when <code>note-name.md</code> already exists produces <code>note-name(1).md</code>; import it again and you get <code>note-name(2).md</code>, and so on. Re-importing an export you already have, in other words, adds a duplicate copy rather than silently replacing anything. (Imported attachments use Notespice's regular file-upload collision handling instead, a <code>-2</code>, <code>-3</code>, etc. suffix, since that's the same code path as a normal upload through the editor.)</p>
-<h2 id="note-list-order">Note list order</h2>
-<p>Pinned notes come first, under a "Pinned" heading. Click the pin icon on a sidebar row (it appears on hover on desktop, and is always shown on touch devices) to pin or unpin a note; pinning has no effect on the note's content or its file on disk.</p>
-<p>Below the pinned notes, the sidebar shows your last 10 <em>viewed</em> notes, most-recently-opened at the top, not last-edited. Opening a note you don't change still brings it to the top; editing isn't required. Reopening a note already in that list moves it back to the top rather than duplicating it. Every other note (anything outside the last 10 viewed) falls back to last-modified order underneath.</p>
-<p>Both are tracked as small JSON files in <code>NOTES_DATA_DIR</code>: <code>.recent.json</code> is an array of up to 10 titles, most-recent-first; <code>.pinned.json</code> is an array of pinned titles. Both are disposable app state, not a note, which is exactly why they live in a separate directory from the notes themselves rather than mixed in with your vault: deleting <code>.recent.json</code> just resets the sidebar to modified-time order, and deleting <code>.pinned.json</code> just unpins everything — nothing else is affected, and neither file is part of search, export, or the note list itself.</p>
-<h2 id="data-model">Data model</h2>
-<p>Every note is <code>&lt;NOTES_DIR&gt;/&lt;title&gt;.md</code>, a plain UTF-8 markdown file. Anything inserted into a note (images, PDFs, any other attachment) is uploaded to <code>&lt;NOTES_DIR&gt;/files/&lt;name&gt;</code> and referenced from the note by a relative link, so the whole vault (text and attachments together) is still just one bind-mounted volume: <code>NOTES_DIR</code> is the only directory you ever need to back up. <code>NOTES_DATA_DIR</code> is a separate, smaller directory for app-only state (see <a href="#note-list-order">Note list order</a>), deliberately not part of the vault, since it isn't your data.</p>
-<p>There is no database, no hidden index file that matters (the search index lives in memory only and rebuilds from these files on every start), and no proprietary formatting. You can add, edit, or delete <code>.md</code> files, or drop files directly into <code>files/</code>, while the app is stopped. You can even do it while it's running, though you'll need to restart to pick up out-of-band changes, since the index isn't watching the filesystem.</p>
-<p>Attachment filenames go through the same allow-list sanitiser as note titles before ever touching disk, and duplicate uploads are disambiguated with a <code>-2</code>, <code>-3</code>, and so on suffix rather than overwriting. Fetching an attachment (<code>GET /api/files/&lt;name&gt;</code>) requires the same session cookie as everything else; nothing is reachable by a logged-out visitor just because it's rendered as an <code>&lt;img&gt;</code> tag rather than fetched with JavaScript. Uploads are capped at 20MB per file.</p>
-<h2 id="project-structure">Project Structure</h2>
+<h2 id="building-it-yourself">Building it yourself</h2>
+<pre><code>git clone https://github.com/gh-lm/notespice.git
+cd notespice
+docker build -t notespice .</code></pre>
+<p>The published image is built by <a href=".github/workflows/release.yml">the workflow in this repository</a> when a version tag is pushed, and lands at <code>ghcr.io/gh-lm/notespice</code>.</p>
+<h3 id="what-is-in-the-repository">What is in the repository</h3>
 <pre><code>notespice/
 ├── src/                      # Rust backend (axum)
 │   ├── main.rs
 │   ├── auth.rs               # password hashing, sessions, rate limiting
 │   ├── handlers.rs           # HTTP route handlers
-│   ├── store.rs              # note/attachment/recent-views file I/O
+│   ├── store.rs              # note, attachment and recent-view file I/O
 │   └── search.rs             # in-memory inverted-index search
-├── static/                   # Frontend: plain HTML/CSS/JS, no build step
+├── static/                   # Frontend: plain HTML, CSS and JS, no build step
 │   ├── index.html
 │   ├── app.js
 │   ├── style.css
 │   ├── manifest.json         # PWA manifest
-│   ├── sw.js                 # service worker (app shell only, no note data)
+│   ├── sw.js                 # service worker, app shell only, no note data
 │   ├── icons/
 │   ├── fonts/                # self-hosted Trindle Sans (variable)
-│   └── images/               # Lightmorphic badge logos
+│   └── images/
+├── site/                     # The notespice.org website
 ├── tests/
-│   └── e2e-roundtrip.js      # 58-scenario Writer&lt;-&gt;Markdown suite (real browser)
-├── docs/
-│   └── logo.png
+│   └── e2e-roundtrip.js      # 58-scenario Writer and Markdown suite
+├── docs/images/              # The pictures in this README
+├── .github/workflows/        # Builds and publishes the image
 ├── Cargo.toml
 ├── Dockerfile
 ├── docker-compose.yml
-├── .dockerignore
-├── .gitignore
 ├── CHANGELOG.md
 ├── SECURITY.md
 └── LICENSE</code></pre>
-<h2 id="development">Development</h2>
-<p>Keep it simple. This app exists specifically to be small enough to read top to bottom: no frontend build step, no database, no dependency that isn't earning its place. If a change makes something harder to understand without a clear payoff, it's probably the wrong change.</p>
-<p>The Writer/Markdown converter is guarded by <code>tests/e2e-roundtrip.js</code>: 58 scenarios covering the full supported GFM feature set in both directions, plus real toolbar and keyboard interactions, driven against the actual app in a real browser (Playwright + Chromium; see the file header for how to run it). Any change touching the editor, the converter, or Enter/paste handling should keep that suite at 58/58 before shipping.</p>
-<h2 id="license">License</h2>
+<p>The Writer and Markdown converter is guarded by <code>tests/e2e-roundtrip.js</code>: 58 scenarios covering the supported feature set in both directions, plus real toolbar and keyboard interactions, driven against the running app in a real browser. Anything touching the editor, the converter or Enter and paste handling should keep that suite at 58 out of 58 before it ships.</p>
+<p>This app exists to be small enough to read top to bottom. No frontend build step, no database, no dependency that is not earning its place.</p>
+<h2 id="licence">Licence</h2>
 <p>Copyright (C) 2026 Lightmorphic Ltd.</p>
-<p>Notespice is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License version 3, as published by the Free Software Foundation.</p>
-<p>It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the <a href="/licence">LICENSE</a> file for the full text, or <a href="https://www.gnu.org/licenses/" target="_blank" rel="noopener noreferrer" aria-label="https://www.gnu.org/licenses/ (opens in a new tab)">https://www.gnu.org/licenses/</a>.</p>
-<p>Releases up to and including 1.8.24 were published under the MIT Licence. That grant is irrevocable, so those versions remain available on those terms; everything from the next release on is GPL v3.</p>
+<p>Notespice is free software: you can redistribute it and modify it under the terms of the GNU General Public License version 3, as published by the Free Software Foundation.</p>
+<p>It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY, without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See <a href="/licence">LICENSE</a> for the full text, or <a href="https://www.gnu.org/licenses/" target="_blank" rel="noopener noreferrer" aria-label="https://www.gnu.org/licenses/ (opens in a new tab)">https://www.gnu.org/licenses/</a>.</p>
+<p>Releases up to and including 1.8.24 were published under the MIT Licence. That grant cannot be withdrawn, so those versions stay available on those terms. Everything from 1.8.25 on is GPL v3.</p>
+<p><a href="/changelog">CHANGELOG.md</a> has the version history.</p>
 <h2 id="disclaimer">Disclaimer</h2>
 <p>This software is provided "as is", without warranty of any kind, express or implied. See the LICENSE file for the exact legal terms. You use it entirely at your own risk.</p>
 </div></main>
@@ -268,7 +223,7 @@ docker compose up -d</code></pre>
     </div>
     <nav class="footer-nav foot-mid" aria-label="The project">
       <h2>The project</h2>
-      <a href="https://hub.docker.com/r/lightmorphic/notespice" target="_blank" rel="noopener noreferrer" aria-label="Docker Hub (opens in a new tab)">Docker Hub</a>
+      <a href="https://github.com/gh-lm/notespice" target="_blank" rel="noopener noreferrer" aria-label="The code on GitHub (opens in a new tab)">GitHub</a>
       <a href="/source">Source</a>
       <a href="/changelog">Changelog</a>
       <a href="/security">Security</a>

@@ -307,15 +307,16 @@ container image instead:</p>
 
 <h2>The ready-made image</h2>
 <p>If you only want to run Notespice rather than build it, the image is
-published on
-<a href="https://hub.docker.com/r/lightmorphic/notespice">Docker Hub</a> as
-<code>lightmorphic/notespice</code>.</p>
+published on GitHub's registry as
+<code>ghcr.io/gh-lm/notespice</code>.</p>
 
-<h2>Why there is no code host</h2>
-<p>There is no public repository to browse. The archive above is the whole
-source, and it is replaced whenever a new version is released, so it always
-matches the current image. The <a href="/changelog">changelog</a> records what
-changed in each release.</p>
+<h2>Browsing the code instead</h2>
+<p>The archive above is the whole source, and it is replaced whenever a new
+version is released, so it always matches the current image. If you would
+rather read it in a browser, the same code is at
+<a href="https://github.com/gh-lm/notespice" target="_blank" rel="noopener noreferrer">github.com/gh-lm/notespice</a>.
+The <a href="/changelog">changelog</a> records what changed in each
+release.</p>
 """ % {"kb": round(size / 1024), "files": files, "digest": digest}
 
 
@@ -354,6 +355,15 @@ def stamp_css():
     print("css stamp %s, %d page(s) updated" % (digest, changed))
 
 
+def without_pictures(md):
+    """The README leads with a banner, screenshots and a diagram. They are
+    there for anyone reading the repository; the website has its own
+    pictures, so the documentation page takes the words alone."""
+    md = re.sub(r"<p align=\"center\">.*?</p>\s*", "", md, flags=re.S)
+    md = re.sub(r"<table>.*?</table>\s*", "", md, flags=re.S)
+    return md
+
+
 def main():
     head_tmpl, tail = shell()
     files, size, digest = build_tarball()
@@ -362,7 +372,7 @@ def main():
         ("docs", "Documentation", "How to run Notespice, every setting it has, "
          "and how it keeps your notes.", "Documentation",
          "Everything about running Notespice, from first start to every setting.",
-         convert((ROOT / "README.md").read_text())),
+         convert(without_pictures((ROOT / "README.md").read_text()))),
         ("changelog", "Changelog", "Every release of Notespice and what changed "
          "in it, newest first.", "Changelog",
          "Every release, newest first.",

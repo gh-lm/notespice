@@ -74,6 +74,17 @@
 <p class="updated">Every release, newest first.</p>
 
 <div class="release">
+<h2 id="1-0-0-2026-10-15">1.0.0 — 2026-10-15</h2>
+<ul>
+<li>Notespice is version 1.0. The number goes down, not up: releases up to 1.8.25 were the long run-up, and this is the first one called finished. If your tooling sorts by version number it will still prefer the old one, so pin the tag rather than trusting <code>:latest</code> to move.</li>
+<li>The source is back on GitHub, at github.com/gh-lm/notespice. That is now the home for the code, the changelog and the security policy.</li>
+<li>The image moves with it, to GitHub's registry. Pull <code>ghcr.io/gh-lm/notespice:1.0.0</code> or <code>:latest</code>.</li>
+<li>The Docker Hub image, <code>lightmorphic/notespice</code>, is on its way out. Change the one line in your compose file to the ghcr address. The old image stays up for now so nothing breaks the moment you read this.</li>
+<li>Every icon in the app and on the website is redrawn in one set: the Trindle symbolic icons, with the editor's own icons drawn to match.</li>
+<li>The website's demo editor no longer uses browser tooltips, and its toolbar buttons now have names a screen reader can read.</li>
+</ul>
+</div>
+<div class="release">
 <h2 id="1-8-25-2026-10-01">1.8.25 — 2026-10-01</h2>
 <ul>
 <li>The website has moved to Cloudflare Pages. Nothing changes for you: it is the same address, notespice.org. The privacy page names the new host.</li>
@@ -543,7 +554,7 @@
     </div>
     <nav class="footer-nav foot-mid" aria-label="The project">
       <h2>The project</h2>
-      <a href="https://hub.docker.com/r/lightmorphic/notespice" target="_blank" rel="noopener noreferrer" aria-label="Docker Hub (opens in a new tab)">Docker Hub</a>
+      <a href="https://github.com/gh-lm/notespice" target="_blank" rel="noopener noreferrer" aria-label="The code on GitHub (opens in a new tab)">GitHub</a>
       <a href="/source">Source</a>
       <a href="/changelog">Changelog</a>
       <a href="/security">Security</a>
