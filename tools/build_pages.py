@@ -313,8 +313,8 @@ published on GitHub's registry as
 <h2>Browsing the code instead</h2>
 <p>The archive above is the whole source, and it is replaced whenever a new
 version is released, so it always matches the current image. If you would
-rather read it in a browser, the same code is at
-<a href="https://github.com/gh-lm/notespice" target="_blank" rel="noopener noreferrer">github.com/gh-lm/notespice</a>.
+rather read it in a browser, the same code is linked from the foot of
+every page.
 The <a href="/changelog">changelog</a> records what changed in each
 release.</p>
 """ % {"kb": round(size / 1024), "files": files, "digest": digest}
@@ -353,46 +353,6 @@ def stamp_css():
             page.write_text(new)
             changed += 1
     print("css stamp %s, %d page(s) updated" % (digest, changed))
-
-
-REDIRECTS = [
-    # Addresses that used to live on other hosts, and one American
-    # spelling. Cloudflare Pages served these from a _redirects file;
-    # GitHub Pages has no such thing, so each one is a small page that
-    # sends the browser on and names the real address as canonical.
-    ("code", "/source"),
-    ("whats-new", "/changelog"),
-    ("bugs", "/security"),
-    ("license", "/licence"),
-]
-
-REDIRECT_PAGE = """<!doctype html>
-<html lang="en-GB">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Moved</title>
-<link rel="canonical" href="https://notespice.org%(target)s" />
-<meta http-equiv="refresh" content="0; url=%(target)s" />
-<meta name="robots" content="noindex" />
-<style>body{background:#1c1e26;color:#fafafa;font-family:system-ui,sans-serif;
-margin:0;min-height:100vh;display:grid;place-items:center;padding:24px}
-a{color:#fbc711}</style>
-</head>
-<body><p>This page is now at <a href="%(target)s">notespice.org%(target)s</a>.</p></body>
-</html>
-"""
-
-
-def build_redirects():
-    """One small page per old address, because GitHub Pages cannot do
-    server-side redirects. Written as <path>/index.html so the old
-    address keeps working with or without a trailing slash."""
-    for path, target in REDIRECTS:
-        out = SITE / path
-        out.mkdir(parents=True, exist_ok=True)
-        (out / "index.html").write_text(REDIRECT_PAGE % {"target": target})
-    print("redirects %6d page(s)" % len(REDIRECTS))
 
 
 def without_pictures(md):
@@ -441,7 +401,6 @@ def main():
         print("%-10s %6d bytes" % (slug, len(out)))
 
     print("tarball   %6d bytes, %d files" % (size, files))
-    build_redirects()
     stamp_css()
     print("sha256    %s" % digest)
 

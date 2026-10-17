@@ -1115,6 +1115,12 @@ el("wysiwyg-editor").addEventListener("input", onEditingInput);
 el("wysiwyg-editor").addEventListener("click", (e) => {
   const editor = el("wysiwyg-editor");
   if (e.target !== editor) return;
+  // A drag that starts in one paragraph and ends in another, or in the
+  // padding, also reports its click on the editor itself. By then the
+  // browser has made the selection, so leave it alone; a plain click
+  // has already collapsed it to a caret.
+  const current = window.getSelection();
+  if (current && !current.isCollapsed) return;
   // Two different clicks land on the container itself. Beside a line,
   // in the editor's side padding: put the caret on the line actually
   // clicked, at whichever end is nearer, so typing goes where the

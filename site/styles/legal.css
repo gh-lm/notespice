@@ -187,6 +187,28 @@ footer .subfooter { text-align: left; }
     text-align: left; align-items: flex-start; }
 }
 @media (max-width: 560px) { .site-footer { flex-direction: column; } }
+/* Source-code row: the two marks on the left, the repository links on
+   the right. Same rule and rhythm as the legal sub-footer below it. */
+.oss-bar { max-width: var(--max-w); margin: 28px auto 0; padding-top: 22px;
+  border-top: 1px solid var(--border); color: var(--muted-fg); font-size: 15px;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 8px 16px; text-align: left; }
+.oss-bar .marks { display: flex; align-items: center; gap: 2px; margin-left: -10px; }
+.oss-bar .marks a { display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; border-radius: 8px; color: var(--muted-fg);
+  text-decoration: none; }
+.oss-bar .marks a:hover { color: var(--fg); background: var(--raised); }
+.oss-bar .marks svg { width: 21px; height: 21px; display: block; }
+.oss-bar nav { flex: 0 1 auto; max-width: 100%; display: flex; flex-wrap: wrap;
+  justify-content: flex-end; margin-right: -6px; }
+.oss-bar nav a { display: inline-flex; align-items: center; justify-content: center;
+  padding: 12px 6px; min-width: 44px; min-height: 44px; color: var(--muted-fg);
+  font-size: 15px; text-decoration: none; }
+.oss-bar nav a:hover { color: var(--fg); }
+@media (max-width: 700px) {
+  .oss-bar nav { justify-content: flex-start; margin-left: -6px; margin-right: 0; }
+  .site-footer .footer-nav { align-items: flex-start; text-align: left; }
+}
 /* Company details on the left, the five legal links pushed to the
    right on the same row; both stack and left-align on a narrow screen. */
 .subfooter {

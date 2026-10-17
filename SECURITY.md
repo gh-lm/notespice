@@ -13,8 +13,8 @@ lands in the next build and you are expected to update to it.
 
 | Version | Supported |
 |---|---|
-| 1.0.0 | yes |
-| 1.8.x and earlier | no |
+| 1.0.1 | yes |
+| 1.0.0, 1.8.x and earlier | no |
 
 ## Reporting a vulnerability
 

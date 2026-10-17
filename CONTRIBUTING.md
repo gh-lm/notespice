@@ -1,19 +1,22 @@
 # Contributing
 
-Thank you for looking, but Notespice does not take outside code.
+Thank you for taking an interest in Notespice. It really is appreciated.
 
-Lightmorphic Ltd is the only contributor, and the commit history is
-meant to stay that way. Pull requests will be closed unread, whatever
-is in them, and this is not a judgement on the work: it is simply how
-this project is run.
+The way this project is set up, the code is written and kept in one place
+by Lightmorphic Ltd, so we can't take code changes from outside. That has
+nothing to do with the quality of anyone's work. We just find it works best
+when we hear what went wrong, and fix it ourselves.
 
-What is welcome:
+So the most useful thing you can send is a description:
 
-- **Security reports.** Please follow [SECURITY.md](./SECURITY.md) and
-  use private reporting rather than a public issue.
-- **Bug reports.** If something is broken, say what you did, what you
-  expected and what happened instead, along with the version you are
-  running and how you are running it.
+- **Something broken?** Open an issue and tell us what you did, what you
+  expected, and what happened instead. The version you are running and how
+  you run it (Docker, which browser) help a great deal. A screenshot is
+  welcome too.
+- **An idea?** Tell us what you were trying to do and where Notespice got
+  in the way. You don't need to suggest how to fix it.
+- **A security problem?** Please use private reporting rather than a
+  public issue. [SECURITY.md](./SECURITY.md) explains how.
 
-Notespice is GPL v3, so you are free to fork it and take it wherever
-you like. You just cannot bring it back here.
+Notespice is GPL v3, so you are always free to fork it and take it in your
+own direction.

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.1 — 2026-10-17
+
+- Selecting text in the editor works again. Dragging from one paragraph
+  into another, or out into the empty space beside a line, used to drop the
+  selection the moment you let go of the mouse.
+
 ## 1.0.0 — 2026-10-15
 
 - Notespice is version 1.0. The number goes down, not up: releases up to
